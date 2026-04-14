@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # --------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: worker-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx:/etc/nginx/conf.d:ro
+    networks:
+      - worker-network
+    depends_on:
+      - backend
+
+  # --------------------------------------------------------------------------
+  # Application Service
+  # --------------------------------------------------------------------------
+  backend:
+    build: .
+    container_name: worker-backend
+    restart: unless-stopped
+    expose:
+      - "8090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/worker_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-password}
+      - SPRING_DATA_REDIS_HOST=redis
+      - OPENSEARCH_HOST=opensearch
+      - OPENSEARCH_PORT=9200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    networks:
+      - worker-network
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL Database
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: worker-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=worker_db
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - worker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USERNAME:-postgres} -d worker_db || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL Backup
+  # --------------------------------------------------------------------------
+  postgres-backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: worker-db-backup
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=worker-postgres
+      - POSTGRES_DB=worker_db
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+    volumes:
+      - ./docker/backups:/backups
+    networks:
+      - worker-network
+    depends_on:
+      - postgres
+
+  # --------------------------------------------------------------------------
+  # Redis Cache
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: worker-redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+    networks:
+      - worker-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # --------------------------------------------------------------------------
+  # OpenSearch
+  # --------------------------------------------------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    container_name: worker-opensearch
+    restart: unless-stopped
+    environment:
+      - cluster.name=worker-cluster
+      - node.name=worker-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    expose:
+      - "9200"
+    networks:
+      - worker-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres-data:
+  opensearch-data:
+
+networks:
+  worker-network:
+    driver: bridge

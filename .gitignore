@@ -1,0 +1,40 @@
+# Root .gitignore for DailyWorkerApp (Monorepo)
+
+# --- Java / Gradle (WorkerBackend) ---
+WorkerBackend/.gradle
+WorkerBackend/build/
+WorkerBackend/bin/
+WorkerBackend/.idea
+WorkerBackend/*.iws
+WorkerBackend/*.iml
+WorkerBackend/*.ipr
+WorkerBackend/out/
+WorkerBackend/.vscode/
+WorkerBackend/.env
+
+# --- React Native / Node (WorkerD) ---
+WorkerD/node_modules/
+WorkerD/build/
+WorkerD/android/app/build/
+WorkerD/ios/build/
+WorkerD/ios/Pods/
+WorkerD/vendor/bundle/
+WorkerD/*.jsbundle
+WorkerD/.env
+WorkerD/npm-debug.log
+WorkerD/yarn-error.log
+WorkerD/.expo/
+WorkerD/dist/
+WorkerD/coverage/
+WorkerD/.metro-health-check*
+
+# --- General ---
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+*.swp
+*.bak
+artifacts/
+scratch/
