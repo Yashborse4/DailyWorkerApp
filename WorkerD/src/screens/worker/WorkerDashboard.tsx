@@ -15,6 +15,10 @@ import {
   VerificationBanner,
   JobCard,
 } from '../../components/dashboard';
+import * as workerService from '../../api/workerService';
+import * as jobService from '../../api/jobService';
+import * as jobApplicationService from '../../api/jobApplicationService';
+import { ActivityIndicator } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,18 +41,66 @@ export const WorkerDashboard = () => {
   const { receiveOffer } = useJobOffer();
   const navigation = useNavigation<any>();
 
-  // ── Data ──────────────────────────────────────────────
+  const [loading, setLoading] = React.useState(true);
+  const [workerProfile, setWorkerProfile] = React.useState<workerService.WorkerProfile | null>(null);
+  const [jobs, setJobs] = React.useState<jobService.Job[]>([]);
+  const [appliedCount, setAppliedCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (profile?.id) {
+          const [profileData, appsData] = await Promise.all([
+            workerService.getWorkerProfile(profile.id),
+            jobApplicationService.getMyApplications()
+          ]);
+          setWorkerProfile(profileData);
+          setAppliedCount(appsData.length);
+        }
+        const jobsData = await jobService.getJobs();
+        setJobs(jobsData.slice(0, 3)); // Only show top 3 on dashboard
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [profile?.id]);
+
+  // ── Derived Data ──────────────────────────────────────
   const stats = [
-    { label: `${t('applied')}`, labelHi: 'आवेदन', value: '12', icon: '📝', color: theme.Colors.primary },
-    { label: `${t('earning')}`, labelHi: 'कमाई', value: '₹4.5k', icon: '💰', color: theme.Colors.secondary },
-    { label: `${t('ratings')}`, labelHi: 'रेटिंग', value: '4.8', icon: '⭐', color: theme.Colors.warning },
+    { 
+      label: `${t('applied')}`, 
+      labelHi: 'आवेदन', 
+      value: appliedCount.toString(), 
+      icon: '📝', 
+      color: theme.Colors.primary 
+    },
+    { 
+      label: `${t('earning')}`, 
+      labelHi: 'कमाई', 
+      value: `₹${(workerProfile?.completedJobsCount || 0) * 500}`, 
+      icon: '💰', 
+      color: theme.Colors.secondary 
+    },
+    { 
+      label: `${t('ratings')}`, 
+      labelHi: 'रेटिंग', 
+      value: workerProfile?.rating?.toFixed(1) || '0.0', 
+      icon: '⭐', 
+      color: theme.Colors.warning 
+    },
   ];
 
-  const recentJobs = [
-    { id: '1', title: 'Home Cleaning', location: 'Andheri West', pay: '₹500/day', type: 'Daily', icon: '🧹' },
-    { id: '2', title: 'Warehouse Helper', location: 'Bhiwandi', pay: '₹800/shift', type: 'Full-time', icon: '📦' },
-    { id: '3', title: 'Delivery Partner', location: 'Bandra', pay: '₹40/order', type: 'Flexible', icon: '🚴' },
-  ];
+  const recentJobs = jobs.map(j => ({
+    id: j.id.toString(),
+    title: j.title,
+    location: j.location,
+    pay: `₹${j.budget}`,
+    type: j.category,
+    icon: '🛠️' // Default icon
+  }));
 
   const isUnverified = !profile?.verificationStatus || profile.verificationStatus === 'unverified';
 
@@ -117,7 +169,7 @@ export const WorkerDashboard = () => {
                 इस महीने की कमाई
               </ThemedText>
               <ThemedText type="headline" size="small" weight="800" color={theme.Colors.secondary} style={styles.earningsValue}>
-                ₹4,500
+                ₹{(workerProfile?.completedJobsCount || 0) * 500}
               </ThemedText>
             </View>
             <View style={[styles.earningsIcon, { backgroundColor: theme.Colors.secondary + '15' }]}>
@@ -134,7 +186,7 @@ export const WorkerDashboard = () => {
                 पूरे किए
               </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.primary}>
-                8
+                {workerProfile?.completedJobsCount || 0}
               </ThemedText>
             </View>
             <View style={[styles.earningsMetaDivider, { backgroundColor: theme.Colors.grey[100] }]} />
@@ -146,7 +198,7 @@ export const WorkerDashboard = () => {
                 औसत
               </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.warning}>
-                ₹562
+                ₹500
               </ThemedText>
             </View>
             <View style={[styles.earningsMetaDivider, { backgroundColor: theme.Colors.grey[100] }]} />
@@ -158,7 +210,7 @@ export const WorkerDashboard = () => {
                 बाकी
               </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.error}>
-                ₹800
+                ₹0
               </ThemedText>
             </View>
           </View>

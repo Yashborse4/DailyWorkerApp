@@ -31,6 +31,9 @@ public class WorkerProfileService {
         if (request.getIsAvailable() != null) {
             profile.setIsAvailable(request.getIsAvailable());
         }
+        if (request.getVerificationStatus() != null) {
+            profile.setVerificationStatus(request.getVerificationStatus());
+        }
 
         // Upgrade user role to WORKER if not already
         if (user.getRole() != Role.WORKER && user.getRole() != Role.ADMIN) {
@@ -59,6 +62,7 @@ public class WorkerProfileService {
                 .rating(profile.getRating())
                 .isAvailable(profile.getIsAvailable())
                 .completedJobsCount(profile.getCompletedJobsCount())
+                .verificationStatus(profile.getVerificationStatus())
                 .createdAt(profile.getCreatedAt())
                 .updatedAt(profile.getUpdatedAt())
                 .build();

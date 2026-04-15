@@ -5,6 +5,8 @@ import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedCard } from '../../components/common/ThemedCard';
 import { useTheme } from '../../hooks/useTheme';
+import * as jobService from '../../api/jobService';
+import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -20,16 +22,10 @@ interface JobPost {
   startDate?: string;
   endDate?: string;
   apps: number;
-  status: 'Active' | 'Pending' | 'Closed';
+  status: 'PUBLISHED' | 'DRAFT' | 'COMPLETED' | 'CANCELLED';
 }
 
-const MOCK_JOBS: JobPost[] = [
-  { id: '1', title: 'Need 5 Carpenters', category: 'Construction', location: 'Andheri, Mumbai', salary: '₹800/day', date: '2 hours ago', apps: 12, status: 'Active', startDate: '28 Mar', endDate: '02 Apr' },
-  { id: '2', title: 'Painter for Apartment', category: 'Cleaning', location: 'Bandra, Mumbai', salary: '₹600/day', date: 'Yesterday', apps: 8, status: 'Active', startDate: '27 Mar', endDate: '29 Mar' },
-  { id: '3', title: 'Office Cleaning', category: 'Cleaning', location: 'Worli, Mumbai', salary: '₹500/day', date: '3 days ago', apps: 15, status: 'Closed', startDate: '20 Mar', endDate: '21 Mar' },
-  { id: '4', title: 'Electrician for Shop', category: 'Electrical', location: 'Dadar, Mumbai', salary: '₹1000/day', date: '5 days ago', apps: 4, status: 'Pending', startDate: '01 Apr', endDate: '01 Apr' },
-  { id: '5', title: 'Plumber for Society', category: 'Plumbing', location: 'Powai, Mumbai', salary: '₹700/day', date: '1 week ago', apps: 20, status: 'Active', startDate: '24 Mar', endDate: '26 Mar' },
-];
+// MOCK_JOBS removed
 
 const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number, theme: any }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -46,9 +42,10 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
 
   const getStatusColor = (status: string, isBg = false) => {
     switch(status) {
-      case 'Active': return isBg ? '#E8F5E9' : '#2E7D32';
-      case 'Pending': return isBg ? '#FFF3E0' : '#E65100';
-      case 'Closed': return isBg ? '#FFEBEE' : '#C62828';
+      case 'PUBLISHED': return isBg ? '#E8F5E9' : '#2E7D32';
+      case 'DRAFT': return isBg ? '#FFF3E0' : '#E65100';
+      case 'COMPLETED': return isBg ? '#E3F2FD' : '#1565C0';
+      case 'CANCELLED': return isBg ? '#FFEBEE' : '#C62828';
       default: return isBg ? '#F5F5F5' : '#757575';
     }
   };
@@ -89,7 +86,10 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
         </View>
 
         <View style={styles.cardActions}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('ViewApplicants', { jobId: item.id, jobTitle: item.title })}
+          >
             <ThemedText color={theme.Colors.hirer.base} weight="700">Applicants</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.primaryActionBtn, { backgroundColor: theme.Colors.hirer.base }]}>
@@ -104,19 +104,43 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
 export const MyJobsScreen = () => {
   const { theme } = useTheme();
   const navigation = useNavigation<any>();
-  const [activeFilter, setActiveFilter] = useState<JobStatus>('All');
+  const [activeFilter, setActiveFilter] = useState<string>('All');
+  const [jobs, setJobs] = useState<JobPost[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const headerFadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(headerFadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+    fetchJobs();
   }, []);
 
-  const filteredJobs = MOCK_JOBS.filter(job => 
+  const fetchJobs = async () => {
+    try {
+      const liveJobs = await jobService.getMyJobs();
+      const mappedJobs: JobPost[] = liveJobs.map(j => ({
+        id: j.id.toString(),
+        title: j.title,
+        category: j.category,
+        location: j.location,
+        salary: `₹${j.budget}`,
+        date: new Date(j.createdAt).toLocaleDateString(),
+        apps: 0, // Backend needs to provide this
+        status: j.status as any
+      }));
+      setJobs(mappedJobs);
+    } catch (error) {
+      console.error('Error fetching my jobs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredJobs = jobs.filter(job => 
     activeFilter === 'All' ? true : job.status === activeFilter
   );
 
-  const renderFilterItem = (status: JobStatus) => (
+  const renderFilterItem = (status: string) => (
     <TouchableOpacity 
       style={[
         styles.filterChip, 
@@ -144,7 +168,7 @@ export const MyJobsScreen = () => {
 
       <View style={styles.filtersContainer}>
         <FlatList 
-          data={['All', 'Active', 'Pending', 'Closed'] as JobStatus[]}
+          data={['All', 'PUBLISHED', 'DRAFT', 'COMPLETED', 'CANCELLED']}
           horizontal
           showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => renderFilterItem(item)}
@@ -153,20 +177,26 @@ export const MyJobsScreen = () => {
         />
       </View>
 
-      <FlatList 
-        data={filteredJobs}
-        renderItem={({ item, index }) => <AnimatedJobCard item={item} index={index} theme={theme} />}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <ThemedText style={{ fontSize: 40 }}>📝</ThemedText>
-            <ThemedText type="title" size="small" style={{ marginTop: 16 }}>No jobs found</ThemedText>
-            <ThemedText color={theme.Colors.grey[500]} style={{ marginTop: 8 }}>Try changing the filter or post a new job.</ThemedText>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={theme.Colors.hirer.base} />
+        </View>
+      ) : (
+        <FlatList 
+          data={filteredJobs}
+          renderItem={({ item, index }) => <AnimatedJobCard item={item} index={index} theme={theme} />}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <ThemedText style={{ fontSize: 40 }}>📝</ThemedText>
+              <ThemedText type="title" size="small" style={{ marginTop: 16 }}>No jobs found</ThemedText>
+              <ThemedText color={theme.Colors.grey[500]} style={{ marginTop: 8 }}>Try changing the filter or post a new job.</ThemedText>
+            </View>
+          }
+        />
+      )}
     </ThemedView>
   );
 };

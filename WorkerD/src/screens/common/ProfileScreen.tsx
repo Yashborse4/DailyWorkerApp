@@ -9,8 +9,10 @@ import { ThemedButton } from '../../components/common/ThemedButton';
 import { ThemedCard } from '../../components/common/ThemedCard';
 import { BilingualText } from '../../components/common/BilingualText';
 import { useTheme } from '../../hooks/useTheme';
-import { useAuth } from '../../context/AuthContext';
 import { Project } from '../../types';
+import * as workerService from '../../api/workerService';
+import * as jobApplicationService from '../../api/jobApplicationService';
+import { ActivityIndicator } from 'react-native';
 
 export const ProfileScreen = () => {
   const { theme } = useTheme();
@@ -20,6 +22,29 @@ export const ProfileScreen = () => {
 
   const [isProjectModalVisible, setIsProjectModalVisible] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', location: '', description: '' });
+  const [loading, setLoading] = useState(true);
+  const [workerProfile, setWorkerProfile] = useState<workerService.WorkerProfile | null>(null);
+  const [appliedCount, setAppliedCount] = useState(0);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (profile?.id && userRole === 'worker') {
+          const [profData, appsData] = await Promise.all([
+            workerService.getWorkerProfile(profile.id),
+            jobApplicationService.getMyApplications()
+          ]);
+          setWorkerProfile(profData);
+          setAppliedCount(appsData.length);
+        }
+      } catch (error) {
+        console.error('Error fetching profile stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [profile?.id, userRole]);
 
   const getVerificationConfig = () => {
     switch (profile?.verificationStatus) {
@@ -64,21 +89,27 @@ export const ProfileScreen = () => {
       <View style={styles.statsRow}>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.primary + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>📝</ThemedText>
-          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.primary}>12</ThemedText>
+          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.primary}>
+            {appliedCount}
+          </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('applied')} / आवेदन
           </ThemedText>
         </View>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.success + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>⭐</ThemedText>
-          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.success}>4.8</ThemedText>
+          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.success}>
+            {workerProfile?.rating?.toFixed(1) || '0.0'}
+          </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('ratings')} / रेटिंग
           </ThemedText>
         </View>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.warning + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>💰</ThemedText>
-          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.warning}>₹4.5k</ThemedText>
+          <ThemedText type="title" size="medium" weight="800" color={theme.Colors.warning}>
+            ₹{(workerProfile?.completedJobsCount || 0) * 500}
+          </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('earning')} / कमाई
           </ThemedText>
@@ -218,6 +249,14 @@ export const ProfileScreen = () => {
       </View>
     </>
   );
+
+  if (loading) {
+    return (
+      <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.Colors.primary} />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>

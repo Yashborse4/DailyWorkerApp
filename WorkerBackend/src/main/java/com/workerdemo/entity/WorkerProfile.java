@@ -56,6 +56,10 @@ public class WorkerProfile {
     @Builder.Default
     private Integer completedJobsCount = 0;
 
+    @Column(name = "verification_status")
+    @Builder.Default
+    private String verificationStatus = "unverified";
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

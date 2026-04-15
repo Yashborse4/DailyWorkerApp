@@ -20,4 +20,5 @@ public class JobApplicationResponse {
     private String coverLetter;
     private JobApplicationStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

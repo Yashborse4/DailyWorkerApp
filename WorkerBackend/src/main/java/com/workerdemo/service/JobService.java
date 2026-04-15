@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class JobService {
 
     private final JobRepository jobRepository;
+    private final com.workerdemo.repository.JobApplicationRepository jobApplicationRepository;
 
     @Transactional
     public JobResponse createJob(JobRequest request, User hirer) {
@@ -52,6 +53,12 @@ public class JobService {
                 .collect(Collectors.toList());
     }
 
+    public List<JobResponse> getJobsByHirer(User hirer) {
+        return jobRepository.findByHirer(hirer).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public JobResponse updateJobStatus(Long id, JobStatus status, User user) {
         Job job = jobRepository.findById(id)
@@ -77,6 +84,7 @@ public class JobService {
                 .latitude(job.getLatitude())
                 .longitude(job.getLongitude())
                 .status(job.getStatus())
+                .applicantCount((int) jobApplicationRepository.countByJob(job))
                 .hirerId(job.getHirer().getId())
                 .hirerName(job.getHirer().getDisplayName())
                 .workerId(job.getWorker() != null ? job.getWorker().getId() : null)

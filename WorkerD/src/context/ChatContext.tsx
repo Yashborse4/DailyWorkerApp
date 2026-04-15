@@ -1,83 +1,96 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ChatMessage, ChatRoom } from '../types';
 import { useAuth } from './AuthContext';
+import * as chatService from '../api/chatService';
 
 interface ChatContextType {
-  rooms: ChatRoom[];
-  activeRoom: ChatRoom | null;
-  setActiveRoomId: (id: string | null) => void;
-  sendMessage: (roomId: string, text: string) => void;
-  markAsRead: (roomId: string) => void;
+  rooms: any[];
+  activeRoom: any | null;
+  setActiveRoomId: (id: number | null) => void;
+  sendMessage: (roomId: number, text: string) => void;
+  markAsRead: (roomId: number) => void;
+  loading: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile } = useAuth();
-  const [rooms, setRooms] = useState<ChatRoom[]>(MOCK_ROOMS);
-  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
 
-  const activeRoom = rooms.find(r => r.id === activeRoomId) || null;
+  useEffect(() => {
+    if (profile?.id) {
+      fetchRooms();
+    }
+  }, [profile?.id]);
 
-  const setActiveRoomIdAndClearUnread = (id: string | null) => {
+  useEffect(() => {
+    if (activeRoomId) {
+      fetchMessages(activeRoomId);
+    } else {
+      setMessages([]);
+    }
+  }, [activeRoomId]);
+
+  const fetchRooms = async () => {
+    setLoading(true);
+    try {
+      const data = await chatService.getRooms();
+      setRooms(data.map(r => ({
+        ...r,
+        messages: r.id === activeRoomId ? messages : []
+      })));
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (roomId: number) => {
+    try {
+      const msgs = await chatService.getMessages(roomId);
+      setMessages(msgs.map(m => ({
+        id: m.id,
+        senderId: m.senderId,
+        text: m.content,
+        timestamp: m.timestamp,
+        status: m.status.toLowerCase()
+      })));
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const activeRoom = rooms.find(r => r.id === activeRoomId) 
+    ? { ...rooms.find(r => r.id === activeRoomId), messages } 
+    : null;
+
+  const setActiveRoomIdAndClearUnread = (id: number | null) => {
     setActiveRoomId(id);
     if (id) markAsRead(id);
   };
 
-  const sendMessage = (roomId: string, text: string) => {
+  const sendMessage = async (roomId: number, text: string) => {
     if (!profile?.id) return;
 
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      senderId: profile.id,
-      text,
-      timestamp: new Date().toISOString(),
-      status: 'sent',
-    };
-
-    setRooms(prev => prev.map(room => {
-      if (room.id === roomId) {
-        return {
-          ...room,
-          messages: [...room.messages, newMessage],
-          lastMessage: newMessage,
-        };
-      }
-      return room;
-    }));
-
-    // Mock response from other user
-    setTimeout(() => {
-        receiveMockResponse(roomId);
-    }, 2000);
+    try {
+      await chatService.sendMessage(roomId, text);
+      fetchMessages(roomId); // Refresh history
+      fetchRooms(); // Refresh last message in list
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const receiveMockResponse = (roomId: string) => {
-    const room = rooms.find(r => r.id === roomId);
-    if (!room) return;
-
-    const responseMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      senderId: room.participants.find(p => p !== profile?.id) || 'system',
-      text: "Thanks for the message! I'll get back to you soon.",
-      timestamp: new Date().toISOString(),
-      status: 'sent',
-    };
-
-    setRooms(prev => prev.map(r => {
-      if (r.id === roomId) {
-        return {
-          ...r,
-          messages: [...r.messages, responseMessage],
-          lastMessage: responseMessage,
-          unreadCount: activeRoomId === roomId ? 0 : r.unreadCount + 1,
-        };
-      }
-      return r;
-    }));
+    // This will be replaced by WebSocket or Polling in a real implementation
   };
 
-  const markAsRead = (roomId: string) => {
+  const markAsRead = (roomId: number) => {
     setRooms(prev => prev.map(room => {
       if (room.id === roomId) {
         return { ...room, unreadCount: 0 };
@@ -89,74 +102,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ChatContext.Provider value={{ 
         rooms, 
-        activeRoom, 
         setActiveRoomId: setActiveRoomIdAndClearUnread, 
         sendMessage, 
-        markAsRead 
+        markAsRead,
+        loading
     }}>
       {children}
     </ChatContext.Provider>
   );
 };
-
-export const useChat = () => {
-  const context = useContext(ChatContext);
-  if (!context) throw new Error('useChat must be used within a ChatProvider');
-  return context;
-};
-
-// --- MOCK DATA ---
-
-const MOCK_ROOMS: ChatRoom[] = [
-  {
-    id: '1',
-    participants: ['user_id', 'worker_1'],
-    otherUserName: 'Rajesh Kumar',
-    unreadCount: 2,
-    lastMessage: {
-      id: 'm1',
-      senderId: 'worker_1',
-      text: 'Is the site open tomorrow?',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      status: 'sent',
-    },
-    messages: [
-      {
-        id: 'm0',
-        senderId: 'user_id',
-        text: 'Hi Rajesh, I saw your application.',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        status: 'read',
-      },
-      {
-        id: 'm1',
-        senderId: 'worker_1',
-        text: 'Is the site open tomorrow?',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        status: 'sent',
-      }
-    ]
-  },
-  {
-    id: '2',
-    participants: ['user_id', 'hirer_1'],
-    otherUserName: 'Skyline Infra',
-    unreadCount: 0,
-    lastMessage: {
-      id: 'm2',
-      senderId: 'hirer_1',
-      text: 'Your document verification is pending.',
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      status: 'read',
-    },
-    messages: [
-      {
-        id: 'm2',
-        senderId: 'hirer_1',
-        text: 'Your document verification is pending.',
-        timestamp: new Date(Date.now() - 86400000).toISOString(),
-        status: 'read',
-      }
-    ]
-  }
-];

@@ -4,6 +4,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { useChat } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
 import MessageBubble from '../../components/chat/MessageBubble';
 import ChatInput from '../../components/chat/ChatInput';
@@ -12,6 +13,7 @@ export const ChatRoomScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
+  const { profile } = useAuth();
   const { roomId } = route.params;
   const { activeRoom, setActiveRoomId, sendMessage } = useChat();
   const flatListRef = useRef<FlatList>(null);
@@ -68,7 +70,7 @@ export const ChatRoomScreen = () => {
         renderItem={({ item }) => (
           <MessageBubble
             message={item}
-            isMe={item.senderId === 'user_id'}
+            isMe={item.senderId === profile?.id}
           />
         )}
         contentContainerStyle={styles.messageList}

@@ -8,6 +8,7 @@ import { ThemedButton } from '../../components/common/ThemedButton';
 import { BilingualText } from '../../components/common/BilingualText';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
+import * as workerService from '../../api/workerService';
 
 export const VerificationScreen = () => {
   const { theme } = useTheme();
@@ -16,12 +17,25 @@ export const VerificationScreen = () => {
   const navigation = useNavigation();
 
   const handleUpload = async () => {
-    await updateProfile({ verificationStatus: 'pending' });
-    Alert.alert(
-      'Success / सफल',
-      'Verification documents uploaded! We will review them shortly.\nसत्यापन दस्तावेज़ अपलोड हो गए! हम जल्द ही उनकी समीक्षा करेंगे।'
-    );
-    navigation.goBack();
+    try {
+      if (profile?.id) {
+        const currentProfile = await workerService.getWorkerProfile(profile.id);
+        await workerService.createOrUpdateProfile({
+          ...currentProfile,
+          verificationStatus: 'pending'
+        });
+        await updateProfile({ verificationStatus: 'pending' }); // Update local context too
+      }
+      
+      Alert.alert(
+        'Success / सफल',
+        'Verification documents uploaded! We will review them shortly.\nसत्यापन दस्तावेज़ अपलोड हो गए! हम जल्द ही उनकी समीक्षा करेंगे।'
+      );
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error uploading verification:', error);
+      Alert.alert('Error', 'Failed to submit verification.');
+    }
   };
 
   return (

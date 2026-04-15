@@ -44,6 +44,12 @@ public class JobController {
         return ResponseEntity.ok(jobService.getAllJobs());
     }
 
+    @GetMapping("/my-jobs")
+    @Operation(summary = "Get current hirer's job postings")
+    public ResponseEntity<List<JobResponse>> getMyJobs(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(jobService.getJobsByHirer(user));
+    }
+
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update job status")
     public ResponseEntity<JobResponse> updateJobStatus(

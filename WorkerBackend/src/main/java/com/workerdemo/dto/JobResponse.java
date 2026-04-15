@@ -22,6 +22,7 @@ public class JobResponse {
     private Double latitude;
     private Double longitude;
     private JobStatus status;
+    private Integer applicantCount;
     private Long hirerId;
     private String hirerName;
     private Long workerId;

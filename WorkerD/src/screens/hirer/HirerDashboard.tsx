@@ -12,6 +12,9 @@ import {
   SectionHeader,
   JobCard,
 } from '../../components/dashboard';
+import * as jobService from '../../api/jobService';
+import * as jobApplicationService from '../../api/jobApplicationService';
+import { ActivityIndicator } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,28 +34,64 @@ export const HirerDashboard = () => {
   const { profile } = useAuth();
   const navigation = useNavigation<any>();
 
-  // ── Data ──────────────────────────────────────────────
+  const [loading, setLoading] = React.useState(true);
+  const [jobs, setJobs] = React.useState<jobService.Job[]>([]);
+  const [applicantCount, setApplicantCount] = React.useState(0);
+  const [shortlistedCount, setShortlistedCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [jobsData, count, sCount] = await Promise.all([
+          jobService.getMyJobs(),
+          jobApplicationService.getApplicantCount(),
+          jobApplicationService.getShortlistedCount()
+        ]);
+        setJobs(jobsData);
+        setApplicantCount(count);
+        setShortlistedCount(sCount);
+      } catch (error) {
+        console.error('Error fetching hirer dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // ── Derived Data ──────────────────────────────────────
   const stats = [
-    { label: 'Live Jobs', value: '3', icon: '📡', color: theme.Colors.hirer.base },
-    { label: 'Applicants', value: '28', icon: '👥', color: theme.Colors.secondary },
-    { label: 'Shortlisted', value: '5', icon: '✅', color: '#27ae60' },
+    { label: 'Live Jobs', value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), icon: '📡', color: theme.Colors.hirer.base },
+    { label: 'Applicants', value: applicantCount.toString(), icon: '👥', color: theme.Colors.secondary },
+    { label: 'Shortlisted', value: shortlistedCount.toString(), icon: '✅', color: '#27ae60' },
   ];
 
   const pipelineData = [
-    { label: 'Active', value: '3', color: theme.Colors.hirer.base },
-    { label: 'Filled', value: '12', color: theme.Colors.secondary },
-    { label: 'Pending', value: '2', color: theme.Colors.warning },
+    { label: 'Active', value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), color: theme.Colors.hirer.base },
+    { label: 'Filled', value: jobs.filter(j => j.status === 'COMPLETED').length.toString(), color: theme.Colors.secondary },
+    { label: 'Pending', value: jobs.filter(j => j.status === 'DRAFT').length.toString(), color: theme.Colors.warning },
   ];
 
-  const recentPosts = [
-    { id: '1', title: 'Need 5 Carpenters', date: '2 hours ago', apps: 12, status: 'Active', icon: '🪚' },
-    { id: '2', title: 'Painter for Apartment', date: 'Yesterday', apps: 8, status: 'Active', icon: '🎨' },
-    { id: '3', title: 'Office Cleaning', date: '3 days ago', apps: 15, status: 'Closed', icon: '🧹' },
-  ];
+  const recentPosts = jobs.slice(0, 3).map(j => ({
+    id: j.id.toString(),
+    title: j.title,
+    date: new Date(j.createdAt).toLocaleDateString(),
+    apps: (j as any).applicantCount || 0,
+    status: j.status,
+    icon: '🛠️'
+  }));
 
   // ── Stagger timing ───────────────────────────────────
   const BASE_DELAY = 100;
   const STAGGER = 80;
+
+  if (loading) {
+    return (
+      <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.Colors.hirer.base} />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>

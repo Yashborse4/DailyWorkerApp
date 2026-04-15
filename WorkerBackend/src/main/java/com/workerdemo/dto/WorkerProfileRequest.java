@@ -19,4 +19,6 @@ public class WorkerProfileRequest {
     private Integer experienceYears;
     
     private Boolean isAvailable;
+
+    private String verificationStatus;
 }

@@ -7,10 +7,22 @@ import { ThemedInput } from '../../components/common/ThemedInput';
 import { ThemedButton } from '../../components/common/ThemedButton';
 import { useTheme } from '../../hooks/useTheme';
 import { useToast } from '../../context/ToastContext';
+import * as jobService from '../../api/jobService';
+import { useAuth } from '../../context/AuthContext';
 
 const WORK_TYPES = ['Full-time', 'Part-time', 'One-off', 'Contract'];
 const PAYMENT_MODES = ['Daily', 'Weekly', 'Fixed Price', 'Hourly'];
 const ENTITY_TYPES = ['Company', 'Building Construction'];
+const JOB_CATEGORIES = [
+  'Home Cleaning',
+  'Electrical Repair',
+  'Construction Labour',
+  'Pest Control',
+  'Warehouse Helper',
+  'Delivery Partner',
+  'Plumbing',
+  'Painting'
+];
 
 export const PostJobScreen = () => {
   const [title, setTitle] = useState('');
@@ -28,6 +40,7 @@ export const PostJobScreen = () => {
 
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { profile } = useAuth();
   const navigation = useNavigation<any>();
 
   // Animations
@@ -52,11 +65,27 @@ export const PostJobScreen = () => {
 
     setIsLoading(true);
     try {
-      // Mock API call
-      await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
+      // Parse salary to numeric budget if it's a single value, or take the average/min if it's a range
+      // For now, we'll try to extract the first number found or use it directly
+      const budgetMatch = salary.match(/\d+/);
+      const budget = budgetMatch ? parseInt(budgetMatch[0], 10) : 0;
+
+      const jobData: Partial<jobService.Job> = {
+        title,
+        description,
+        location,
+        budget,
+        category,
+        // Optional fields from FE that aren't yet in BE Job entity but can be added to description
+        // or handled by a more complex Job entity later
+      };
+
+      await jobService.createJob(jobData);
+      
       showToast({ message: 'Job posted successfully!', type: 'success' });
       navigation.navigate('MyJobs');
     } catch (error) {
+      console.error('Error posting job:', error);
       showToast({ message: 'Failed to post job. Please try again.', type: 'error' });
     } finally {
       setIsLoading(false);
@@ -118,12 +147,10 @@ export const PostJobScreen = () => {
             {renderChips(WORK_TYPES, workType, setWorkType)}
           </View>
 
-          <ThemedInput 
-            label="Category" 
-            placeholder="e.g. Construction, Cleaning, etc."
-            value={category}
-            onChangeText={setCategory}
-          />
+          <View style={styles.formGroup}>
+            <ThemedText type="label" size="small" weight="700" style={styles.label}>Category</ThemedText>
+            {renderChips(JOB_CATEGORIES, category, setCategory)}
+          </ThemedText>
 
           <ThemedInput 
             label="Description" 

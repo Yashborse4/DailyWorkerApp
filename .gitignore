@@ -1,4 +1,4 @@
-# Root .gitignore for DailyWorkerApp (Monorepo)
+e t# Root .gitignore for DailyWorkerApp (Monorepo)
 
 # --- Java / Gradle (WorkerBackend) ---
 WorkerBackend/.gradle

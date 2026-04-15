@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../api/authService';
+import * as workerService from '../api/workerService';
 import { STORAGE_KEYS } from '../constants';
 
 interface AuthContextType {
@@ -121,20 +122,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, lng);
       },
       updateProfile: async (data: any) => {
-        console.log('Finalizing profile for:', data);
-        const dummyUser = {
-          id: 999,
-          username: data.name || 'test_user',
-          email: 'test@workerd.com',
-          displayName: data.name || 'Test User',
-          role: userRole?.toUpperCase() || 'USER',
-          isEmailVerified: true,
-          isDealerVerified: true,
-          ...data
-        };
-        await AsyncStorage.setItem('user', JSON.stringify(dummyUser));
-        await AsyncStorage.setItem('accessToken', 'dummy-token');
-        setUser(dummyUser as any);
+        console.log('Updating profile for:', data);
+        try {
+          if (userRole === 'worker') {
+            // If we're updating worker-specific fields (skills, bio, etc.)
+            const profileData: workerService.WorkerProfileRequest = {
+              bio: data.bio || user?.bio || '',
+              skills: data.skills || user?.skills || [],
+              experienceYears: data.experienceYears || user?.experienceYears || 0,
+              isAvailable: data.isAvailable !== undefined ? data.isAvailable : user?.isAvailable,
+            };
+            const updatedProfile = await workerService.createOrUpdateProfile(profileData);
+            
+            const updatedUser = { ...user, ...updatedProfile };
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            setUser(updatedUser as any);
+          } else {
+            // For general user updates, we might need a general userService.
+            // For now, we'll just merge the data into the local state.
+            const updatedUser = { ...user, ...data };
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            setUser(updatedUser as any);
+          }
+        } catch (error) {
+          console.error('Failed to update profile:', error);
+          throw error;
+        }
       },
       selectRole: async (role: 'worker' | 'hirer') => {
         console.log('Select role:', role);

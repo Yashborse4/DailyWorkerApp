@@ -19,6 +19,7 @@ public class WorkerProfileResponse {
     private Double rating;
     private Boolean isAvailable;
     private Integer completedJobsCount;
+    private String verificationStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
