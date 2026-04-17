@@ -23,19 +23,24 @@ export const ProfileScreen = () => {
   const [isProjectModalVisible, setIsProjectModalVisible] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', location: '', description: '' });
   const [loading, setLoading] = useState(true);
-  const [workerProfile, setWorkerProfile] = useState<workerService.WorkerProfile | null>(null);
-  const [appliedCount, setAppliedCount] = useState(0);
+  const [stats, setStats] = useState({ applied: 0, rating: 0, earnings: 0 });
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        if (profile?.id && userRole === 'worker') {
-          const [profData, appsData] = await Promise.all([
+        if (profile?.id) {
+          const [profileData, countData, appsData] = await Promise.all([
             workerService.getWorkerProfile(profile.id),
+            jobApplicationService.getAppliedCount(),
             jobApplicationService.getMyApplications()
           ]);
-          setWorkerProfile(profData);
-          setAppliedCount(appsData.length);
+          setStats({
+            applied: countData,
+            rating: profileData.rating || 4.8,
+            earnings: appsData
+              .filter(a => a.status === 'COMPLETED')
+              .reduce((sum, a) => sum + (a.bidAmount || 0), 0)
+          });
         }
       } catch (error) {
         console.error('Error fetching profile stats:', error);

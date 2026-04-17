@@ -109,17 +109,32 @@ export const ViewApplicantsScreen = () => {
       )}
 
       {item.status === 'ACCEPTED' && (
-        <TouchableOpacity 
-          style={[styles.chatBtn, { backgroundColor: theme.Colors.hirer.base }]}
-          onPress={() => handleChatWithWorker(item.workerId, item.workerName)}
-          disabled={processingId !== null}
-        >
-          {processingId === 1 ? (
-             <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <ThemedText color="#fff" weight="700">Chat with Worker</ThemedText>
-          )}
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            style={[styles.actionBtn, styles.primaryBtn, { backgroundColor: theme.Colors.success }]}
+            onPress={() => handleStatusUpdate(item.id, 'COMPLETED')}
+            disabled={processingId === item.id}
+          >
+            {processingId === item.id ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <ThemedText color="#fff" weight="700">Mark Completed</ThemedText>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionBtn, { borderColor: theme.Colors.hirer.base, borderWidth: 1 }]}
+            onPress={() => handleChatWithWorker(item.workerId, item.workerName)}
+            disabled={processingId !== null}
+          >
+             <ThemedText color={theme.Colors.hirer.base} weight="700">Chat</ThemedText>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {item.status === 'COMPLETED' && (
+        <View style={[styles.statusBadge, { backgroundColor: theme.Colors.success + '20', marginTop: 8 }]}>
+          <ThemedText weight="700" size="small" color={theme.Colors.success}>JOB COMPLETED 🎉</ThemedText>
+        </View>
       )}
     </ThemedCard>
   );

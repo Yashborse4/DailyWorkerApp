@@ -32,7 +32,7 @@
     - [ ] Harden CORS and CSRF configurations.
 - [ ] **Scale**:
     - [ ] Enable Asynchronous processing (`@Async`).
-    - [ ] Setup Message Queue (Kafka or RabbitMQ).
+
 
 ## Phase 4: Testing & DevEx
 - [ ] Implement Testcontainers for PostgreSQL integration tests.
