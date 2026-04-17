@@ -17,6 +17,11 @@ import java.util.function.Function;
 @Component
 @Slf4j
 public class JwtTokenProvider {
+    
+    public static final String TOKEN_TYPE_CLAIM = "tokenType";
+    public static final String TYPE_ACCESS = "ACCESS";
+    public static final String TYPE_REFRESH = "REFRESH";
+
 
     @Value("${application.security.jwt.secret-key}")
     private String jwtSecret;
@@ -31,12 +36,14 @@ public class JwtTokenProvider {
         if (authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return generateAccessToken(userPrincipal);
         }
-        return generateToken(authentication.getName(), null, jwtExpirationInMs);
+        return generateToken(authentication.getName(), null, jwtExpirationInMs, TYPE_ACCESS);
     }
 
+
     public String generateAccessToken(UserPrincipal userPrincipal) {
-        return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), jwtExpirationInMs);
+        return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), jwtExpirationInMs, TYPE_ACCESS);
     }
+
 
     public String generateAccessToken(org.springframework.security.core.userdetails.UserDetails userDetails) {
         Long userId = null;
@@ -45,19 +52,22 @@ public class JwtTokenProvider {
         } else if (userDetails instanceof com.workerdemo.entity.User u) {
             userId = u.getId();
         }
-        return generateToken(userDetails.getUsername(), userId, jwtExpirationInMs);
+        return generateToken(userDetails.getUsername(), userId, jwtExpirationInMs, TYPE_ACCESS);
     }
+
 
     public String generateRefreshToken(Authentication authentication) {
         if (authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return generateRefreshToken(userPrincipal);
         }
-        return generateToken(authentication.getName(), null, refreshExpirationInMs);
+        return generateToken(authentication.getName(), null, refreshExpirationInMs, TYPE_REFRESH);
     }
 
+
     public String generateRefreshToken(UserPrincipal userPrincipal) {
-        return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), refreshExpirationInMs);
+        return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), refreshExpirationInMs, TYPE_REFRESH);
     }
+
 
     public String generateRefreshToken(org.springframework.security.core.userdetails.UserDetails userDetails) {
         Long userId = null;
@@ -66,21 +76,24 @@ public class JwtTokenProvider {
         } else if (userDetails instanceof com.workerdemo.entity.User u) {
             userId = u.getId();
         }
-        return generateToken(userDetails.getUsername(), userId, refreshExpirationInMs);
+        return generateToken(userDetails.getUsername(), userId, refreshExpirationInMs, TYPE_REFRESH);
     }
 
-    private String generateToken(String username, Long userId, long expiration) {
+    private String generateToken(String username, Long userId, long expiration, String tokenType) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
+
         var builder = Jwts.builder()
                 .subject(username)
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(now)
                 .expiration(expiryDate);
         
         if (userId != null) {
             builder.claim("userId", userId);
         }
+
 
         return builder.signWith(getSigningKey())
                 .compact();
@@ -115,14 +128,26 @@ public class JwtTokenProvider {
         return claimsResolver.apply(claims);
     }
 
+    public boolean isAccessToken(String token) {
+        try {
+            String type = getClaimFromToken(token, claims -> claims.get(TOKEN_TYPE_CLAIM, String.class));
+            return TYPE_ACCESS.equals(type);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean isRefreshToken(String token) {
-        // In a real implementation, you might want to check a specific claim or token type
-        // For now, we'll assume valid tokens are refresh tokens if they have longer expiration
-        // but typically one would add a "type" claim.
-        return validateToken(token);
+        try {
+            String type = getClaimFromToken(token, claims -> claims.get(TOKEN_TYPE_CLAIM, String.class));
+            return TYPE_REFRESH.equals(type);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean validateToken(String token) {
+
         try {
             Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
             return true;
