@@ -14,6 +14,7 @@ import {
 } from '../../components/dashboard';
 import * as jobService from '../../api/jobService';
 import * as jobApplicationService from '../../api/jobApplicationService';
+import * as notificationService from '../../api/notificationService';
 import { ActivityIndicator } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -37,19 +38,22 @@ export const HirerDashboard = () => {
   const [loading, setLoading] = React.useState(true);
   const [jobs, setJobs] = React.useState<jobService.Job[]>([]);
   const [applicantCount, setApplicantCount] = React.useState(0);
-  const [shortlistedCount, setShortlistedCount] = React.useState(0);
+  const [shortlistedCount, setShortlistedCount] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [jobsData, count, sCount] = await Promise.all([
+        const [jobsData, count, sCount, notifs] = await Promise.all([
           jobService.getMyJobs(),
           jobApplicationService.getApplicantCount(),
-          jobApplicationService.getShortlistedCount()
+          jobApplicationService.getShortlistedCount(),
+          notificationService.getUnreadCount()
         ]);
         setJobs(jobsData);
         setApplicantCount(count);
         setShortlistedCount(sCount);
+        setUnreadNotifications(notifs);
       } catch (error) {
         console.error('Error fetching hirer dashboard data:', error);
       } finally {
@@ -109,7 +113,7 @@ export const HirerDashboard = () => {
           avatarColor={theme.Colors.hirer.base}
           avatarIcon="🏢"
           showNotificationBell
-          notificationCount={5}
+          notificationCount={unreadNotifications}
           onNotificationPress={() => {}}
           onAvatarPress={() => navigation.navigate('Profile')}
         />

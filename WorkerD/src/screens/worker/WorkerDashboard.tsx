@@ -18,6 +18,7 @@ import {
 import * as workerService from '../../api/workerService';
 import * as jobService from '../../api/jobService';
 import * as jobApplicationService from '../../api/jobApplicationService';
+import * as notificationService from '../../api/notificationService';
 import { ActivityIndicator } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -45,17 +46,20 @@ export const WorkerDashboard = () => {
   const [workerProfile, setWorkerProfile] = React.useState<workerService.WorkerProfile | null>(null);
   const [jobs, setJobs] = React.useState<jobService.Job[]>([]);
   const [appliedCount, setAppliedCount] = React.useState(0);
+  const [unreadNotifications, setUnreadNotifications] = React.useState(0);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         if (profile?.id) {
-          const [profileData, appsData] = await Promise.all([
+          const [profileData, appsData, notifs] = await Promise.all([
             workerService.getWorkerProfile(profile.id),
-            jobApplicationService.getMyApplications()
+            jobApplicationService.getMyApplications(),
+            notificationService.getUnreadCount()
           ]);
           setWorkerProfile(profileData);
           setAppliedCount(appsData.length);
+          setUnreadNotifications(notifs);
         }
         const jobsData = await jobService.getJobs();
         setJobs(jobsData.slice(0, 3)); // Only show top 3 on dashboard
@@ -125,7 +129,7 @@ export const WorkerDashboard = () => {
           avatarColor={theme.Colors.primary}
           avatarIcon="👤"
           showNotificationBell
-          notificationCount={3}
+          notificationCount={unreadNotifications}
           onNotificationPress={() => {}}
           onAvatarPress={() => navigation.navigate('Profile')}
         />
