@@ -12,8 +12,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("ERR_AUTH_004", "User not found", HttpStatus.NOT_FOUND),
     TOO_MANY_REQUESTS("ERR_GEN_003", "Too many requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
     INTERNAL_SERVER_ERROR("ERR_GEN_002", "An internal error occurred", HttpStatus.INTERNAL_SERVER_ERROR),
-    USER_LOCKED("ERR_AUTH_003", "Account is locked due to multiple failed login attempts", HttpStatus.LOCKED),
-    FORBIDDEN("ERR_AUTH_005", "Access forbidden", HttpStatus.FORBIDDEN);
+    USER_LOCKED("ERR_AUTH_003", "Account is locked due to multiple failed login attempts", HttpStatus.LOCKED);
 
     private final String code;
     private final String message;
