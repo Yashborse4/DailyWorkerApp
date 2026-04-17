@@ -91,13 +91,84 @@ public class ChatService {
         return mapToDto(chatMessageRepository.save(message));
     }
 
+    public ChatRoom getChatRoom(Long roomId, Long userId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+        
+        if (!room.getWorker().getId().equals(userId) && !room.getHirer().getId().equals(userId)) {
+            throw new RuntimeException("User is not a participant in this chat room");
+        }
+        return room;
+    }
+
+    public ChatMessageDto getChatMessage(Long messageId, Long userId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        // Ensure user is part of the chat room
+        getChatRoom(message.getChatRoom().getId(), userId);
+        
+        return mapToDto(message);
+    }
+
+    @Transactional
+    public ChatMessageDto editMessage(Long messageId, Long userId, String content) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        if (!message.getSender().getId().equals(userId)) {
+            throw new SecurityException("Unauthorized to edit this message");
+        }
+        
+        message.setContent(content);
+        return mapToDto(chatMessageRepository.save(message));
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId, Long userId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        if (!message.getSender().getId().equals(userId)) {
+            throw new SecurityException("Unauthorized to delete this message");
+        }
+        
+        chatMessageRepository.delete(message);
+    }
+
+    @Transactional
+    public void markMessagesAsRead(Long chatRoomId, List<Long> messageIds, Long userId) {
+        List<ChatMessage> messages = chatMessageRepository.findAllById(messageIds);
+        messages.stream()
+                .filter(m -> m.getChatRoom().getId().equals(chatRoomId) && !m.getSender().getId().equals(userId))
+                .forEach(m -> m.setRead(true));
+        chatMessageRepository.saveAll(messages);
+    }
+
+    public List<ParticipantDto> getAllChatRoomParticipants(Long chatRoomId, Long senderId) {
+        ChatRoom room = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+        
+        return List.of(
+                ParticipantDto.builder()
+                        .userId(room.getWorker().getId())
+                        .username(room.getWorker().getUsername())
+                        .build(),
+                ParticipantDto.builder()
+                        .userId(room.getHirer().getId())
+                        .username(room.getHirer().getUsername())
+                        .build()
+        );
+    }
+
     private ChatMessageDto mapToDto(ChatMessage m) {
+
         return ChatMessageDto.builder()
                 .id(String.valueOf(m.getId()))
                 .chatRoomId(m.getChatRoom().getId())
                 .content(m.getContent())
                 .senderId(m.getSender().getId())
-                .timestamp(m.getTimestamp().toString())
+                .timestamp(m.getTimestamp())
                 .status(m.isRead() ? ChatMessageDto.MessageStatus.READ : ChatMessageDto.MessageStatus.SENT)
                 .build();
     }

@@ -28,6 +28,8 @@ public class NotificationQueue {
     @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
+    private boolean isRead = false;
+
     private int attempts;
     private LocalDateTime nextRetryAt;
     
