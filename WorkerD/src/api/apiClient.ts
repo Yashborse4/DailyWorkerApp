@@ -1,13 +1,11 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://10.0.2.2:8090/api/v1'; // Default for Android Emulator. Use 127.0.0.1 for iOS/Web.
+import { API_CONFIG } from '../config/api.config';
 
 const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.HEADERS,
 });
 
 apiClient.interceptors.request.use(
@@ -60,7 +58,7 @@ apiClient.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, { 
+        const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh-token`, { 
           refreshToken: storedRefreshToken 
         });
         
@@ -85,6 +83,18 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
+    // Enhance error logging for developers
+    if (__DEV__) {
+      console.error('[API Error]:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+
     return Promise.reject(error);
   }
 );

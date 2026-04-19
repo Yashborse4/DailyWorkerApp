@@ -28,6 +28,7 @@ public class NotificationQueue {
     @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
+    @Builder.Default
     private boolean isRead = false;
 
     private int attempts;
