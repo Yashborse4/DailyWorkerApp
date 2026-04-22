@@ -20,5 +20,9 @@ public class WorkerProfileRequest {
     
     private Boolean isAvailable;
 
+    private String trade;
+
+    private String location;
+
     private String verificationStatus;
 }

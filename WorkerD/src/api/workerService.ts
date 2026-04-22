@@ -10,6 +10,8 @@ export interface WorkerProfile {
   rating: number;
   isAvailable: boolean;
   completedJobsCount: number;
+  trade?: string;
+  location?: string;
   verificationStatus: 'unverified' | 'pending' | 'verified';
   createdAt: string;
   updatedAt: string;
@@ -19,6 +21,8 @@ export interface WorkerProfileRequest {
   bio: string;
   skills: string[];
   experienceYears: number;
+  trade?: string;
+  location?: string;
   isAvailable?: boolean;
   verificationStatus?: 'unverified' | 'pending' | 'verified';
 }

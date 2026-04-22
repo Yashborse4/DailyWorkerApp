@@ -130,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               bio: data.bio || user?.bio || '',
               skills: data.skills || user?.skills || [],
               experienceYears: data.experienceYears || user?.experienceYears || 0,
+              trade: data.trade || user?.trade || '',
+              location: data.location || user?.location || '',
               isAvailable: data.isAvailable !== undefined ? data.isAvailable : user?.isAvailable,
             };
             const updatedProfile = await workerService.createOrUpdateProfile(profileData);

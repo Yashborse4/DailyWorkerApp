@@ -44,6 +44,10 @@ public class User implements UserDetails {
 
     private String refreshToken;
     
+    private String companyName;
+    
+    private String companyLocation;
+    
     private int failedLoginAttempts;
     
     @Builder.Default

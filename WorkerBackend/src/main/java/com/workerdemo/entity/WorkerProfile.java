@@ -43,6 +43,12 @@ public class WorkerProfile {
 
     private Integer experienceYears;
 
+    @Size(max = 100)
+    private String trade;
+
+    @Size(max = 200)
+    private String location;
+
     @DecimalMin(value = "0.0")
     @DecimalMax(value = "5.0")
     @Builder.Default

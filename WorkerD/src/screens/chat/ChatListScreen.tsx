@@ -117,7 +117,7 @@ export const ChatListScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerContainer: { paddingHorizontal: 24, paddingTop: 56, marginBottom: 16 },
+  headerContainer: { paddingHorizontal: 20, paddingTop: 56, marginBottom: 16 },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   card: { marginBottom: 4, padding: 14 },
   content: { flexDirection: 'row', alignItems: 'center' },

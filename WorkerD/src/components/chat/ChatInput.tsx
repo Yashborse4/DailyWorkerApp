@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
   container: {
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     paddingTop: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   innerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   micButton: {
     width: 48,

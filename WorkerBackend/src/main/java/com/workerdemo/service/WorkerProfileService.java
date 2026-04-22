@@ -34,6 +34,12 @@ public class WorkerProfileService {
         if (request.getVerificationStatus() != null) {
             profile.setVerificationStatus(request.getVerificationStatus());
         }
+        if (request.getTrade() != null) {
+            profile.setTrade(request.getTrade());
+        }
+        if (request.getLocation() != null) {
+            profile.setLocation(request.getLocation());
+        }
 
         // Upgrade user role to WORKER if not already
         if (user.getRole() != Role.WORKER && user.getRole() != Role.ADMIN) {
@@ -62,6 +68,8 @@ public class WorkerProfileService {
                 .rating(profile.getRating())
                 .isAvailable(profile.getIsAvailable())
                 .completedJobsCount(profile.getCompletedJobsCount())
+                .trade(profile.getTrade())
+                .location(profile.getLocation())
                 .verificationStatus(profile.getVerificationStatus())
                 .createdAt(profile.getCreatedAt())
                 .updatedAt(profile.getUpdatedAt())

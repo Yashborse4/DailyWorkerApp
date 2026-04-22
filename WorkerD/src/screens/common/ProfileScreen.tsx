@@ -13,6 +13,7 @@ import { Project } from '../../types';
 import * as workerService from '../../api/workerService';
 import * as jobApplicationService from '../../api/jobApplicationService';
 import { ActivityIndicator } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 
 export const ProfileScreen = () => {
   const { theme } = useTheme();
@@ -95,7 +96,7 @@ export const ProfileScreen = () => {
         <View style={[styles.statBox, { backgroundColor: theme.Colors.primary + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>📝</ThemedText>
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.primary}>
-            {appliedCount}
+            {stats.applied}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('applied')} / आवेदन
@@ -104,7 +105,7 @@ export const ProfileScreen = () => {
         <View style={[styles.statBox, { backgroundColor: theme.Colors.success + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>⭐</ThemedText>
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.success}>
-            {workerProfile?.rating?.toFixed(1) || '0.0'}
+            {stats.rating.toFixed(1)}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('ratings')} / रेटिंग
@@ -113,7 +114,7 @@ export const ProfileScreen = () => {
         <View style={[styles.statBox, { backgroundColor: theme.Colors.warning + '12' }]}>
           <ThemedText style={{ fontSize: 22 }}>💰</ThemedText>
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.warning}>
-            ₹{(workerProfile?.completedJobsCount || 0) * 500}
+            ₹{stats.earnings}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
             {t('earning')} / कमाई
@@ -134,30 +135,22 @@ export const ProfileScreen = () => {
         />
         <ThemedCard style={styles.infoCard}>
           {/* Trade */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoLabel}>
-              <ThemedText style={{ fontSize: 18 }}>🔧</ThemedText>
-              <View>
-                <ThemedText color={theme.Colors.grey[500]}>{t('primary_trade')}</ThemedText>
-                <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>मुख्य कारीगरी</ThemedText>
-              </View>
-            </View>
-            <ThemedText weight="600">{profile?.trade || t('not_specified')}</ThemedText>
-          </View>
+          <ThemedInput
+            label={t('primary_trade')}
+            placeholder={t('enter_trade')}
+            value={profile?.trade}
+            onChangeText={(val) => updateProfile({ trade: val })}
+          />
 
-          <View style={[styles.divider, { backgroundColor: theme.Colors.grey[100] }]} />
+          <View style={{ height: 12 }} />
 
           {/* Location */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoLabel}>
-              <ThemedText style={{ fontSize: 18 }}>📍</ThemedText>
-              <View>
-                <ThemedText color={theme.Colors.grey[500]}>{t('location')}</ThemedText>
-                <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>स्थान</ThemedText>
-              </View>
-            </View>
-            <ThemedText weight="600">{profile?.location || t('not_specified')}</ThemedText>
-          </View>
+          <ThemedInput
+            label={t('location')}
+            placeholder={t('enter_location')}
+            value={profile?.location}
+            onChangeText={(val) => updateProfile({ location: val })}
+          />
 
           <View style={[styles.divider, { backgroundColor: theme.Colors.grey[100] }]} />
 

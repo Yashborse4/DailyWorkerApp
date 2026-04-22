@@ -26,8 +26,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
         styles.bubble,
         {
           backgroundColor: isMe ? md3.primary : md3.surfaceVariant,
-          borderBottomRightRadius: isMe ? 4 : 20,
-          borderBottomLeftRadius: isMe ? 20 : 4,
+          borderBottomRightRadius: isMe ? 4 : 16,
+          borderBottomLeftRadius: isMe ? 16 : 4,
         },
       ]}>
         <ThemedText
@@ -39,7 +39,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
         >
           {message.text}
         </ThemedText>
-        <View style={styles.metaRow}>
+        <View style={[
+          styles.metaRow,
+          { justifyContent: isMe ? 'flex-end' : 'flex-start' }
+        ]}>
           <ThemedText
             size="small"
             style={{
@@ -80,14 +83,13 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '80%',
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 16,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
     marginTop: 4,
   },
 });
