@@ -1,18 +1,18 @@
-version: '3.8'
 
 services:
   # --------------------------------------------------------------------------
   # Nginx Reverse Proxy
   # --------------------------------------------------------------------------
   nginx:
-    image: nginx:alpine
+    build: ./docker/nginx
+    image: worker-nginx:latest
     container_name: worker-nginx
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./docker/nginx:/etc/nginx/conf.d:ro
+    # volumes:
+    #   - ./docker/nginx:/etc/nginx/conf.d:ro
     networks:
       - worker-network
     depends_on:
@@ -23,6 +23,7 @@ services:
   # --------------------------------------------------------------------------
   backend:
     build: .
+    image: worker-backend:latest
     container_name: worker-backend
     restart: unless-stopped
     expose:
@@ -117,7 +118,9 @@ services:
       - node.name=worker-node
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - plugins.security.disabled=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin123!
+      - DISABLE_INSTALL_DEMO_CONFIG=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
     ulimits:
       memlock:
