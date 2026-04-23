@@ -103,7 +103,7 @@ export const ChatListScreen = () => {
       </View>
       <FlatList
         data={rooms}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         renderItem={renderRoom}
         contentContainerStyle={styles.list}
         ListEmptyComponent={EmptyState}

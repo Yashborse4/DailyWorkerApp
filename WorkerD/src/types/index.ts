@@ -172,14 +172,14 @@ export interface Theme {
 export type UserRole = 'worker' | 'hirer';
 
 export interface Project {
-  id: string;
+  id: number;
   name: string;
   location: string;
   description: string;
 }
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: UserRole;
@@ -195,7 +195,7 @@ export interface User {
 }
 
 export interface Job {
-  id: string;
+  id: number;
   title: string;
   description: string;
   location: string;
@@ -209,23 +209,23 @@ export interface Job {
 }
 
 export interface Application {
-  id: string;
-  jobId: string;
-  workerId: string;
+  id: number;
+  jobId: number;
+  workerId: number;
   status: 'pending' | 'accepted' | 'rejected' | 'shortlisted';
   appliedAt: string;
 }
 
 export interface ChatMessage {
   id: string;
-  senderId: string;
+  senderId: number;
   text: string;
   timestamp: string;
   status: 'sending' | 'sent' | 'delivered' | 'read';
 }
 
 export interface ChatRoom {
-  id: string;
+  id: number;
   participants: string[];
   otherUserName: string;
   otherUserAvatar?: string;
@@ -257,6 +257,6 @@ export type RootStackParamList = {
   Auth: undefined;
   WorkerApp: undefined;
   HirerApp: undefined;
-  ChatRoom: { roomId: string };
+  ChatRoom: { roomId: number };
   Verification: undefined;
 };

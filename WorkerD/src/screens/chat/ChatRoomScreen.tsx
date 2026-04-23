@@ -9,8 +9,11 @@ import { useTheme } from '../../hooks/useTheme';
 import MessageBubble from '../../components/chat/MessageBubble';
 import ChatInput from '../../components/chat/ChatInput';
 
+import { RootStackParamList } from '../../types';
+import { RouteProp } from '@react-navigation/native';
+
 export const ChatRoomScreen = () => {
-  const route = useRoute<any>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ChatRoom'>>();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
   const { profile } = useAuth();
@@ -19,7 +22,7 @@ export const ChatRoomScreen = () => {
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    setActiveRoomId(roomId);
+    setActiveRoomId(Number(roomId));
     return () => setActiveRoomId(null);
   }, [roomId]);
 
