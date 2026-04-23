@@ -147,9 +147,24 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
+        return validateToken(token, null);
+    }
 
+    public boolean validateToken(String token, String expectedType) {
         try {
-            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            if (expectedType != null) {
+                String tokenType = claims.get(TOKEN_TYPE_CLAIM, String.class);
+                if (!expectedType.equals(tokenType)) {
+                    log.warn("JWT token type mismatch. Expected: {}, Found: {}", expectedType, tokenType);
+                    return false;
+                }
+            }
             return true;
         } catch (Exception ex) {
             log.error("Invalid JWT token: {}", ex.getMessage());
@@ -157,7 +172,25 @@ public class JwtTokenProvider {
         return false;
     }
 
+    public boolean validateAccessToken(String token) {
+        return validateToken(token, TYPE_ACCESS);
+    }
+
+    public boolean validateRefreshToken(String token) {
+        return validateToken(token, TYPE_REFRESH);
+    }
+
+    public long getRemainingExpiration(String token) {
+        try {
+            Date expiration = getClaimFromToken(token, Claims::getExpiration);
+            return expiration.getTime() - System.currentTimeMillis();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private SecretKey getSigningKey() {
+        // TODO: [Production-Readiness] Ensure key is stored in a secure secret manager and is at least 32 characters
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
