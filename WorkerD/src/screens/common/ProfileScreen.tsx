@@ -32,7 +32,7 @@ export const ProfileScreen = () => {
         if (profile?.id) {
           const [profileData, countData, appsData] = await Promise.all([
             workerService.getWorkerProfile(profile.id),
-            jobApplicationService.getAppliedCount(),
+            jobApplicationService.getApplicantCount(),
             jobApplicationService.getMyApplications()
           ]);
           setStats({

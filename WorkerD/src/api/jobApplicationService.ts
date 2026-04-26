@@ -8,7 +8,7 @@ export interface JobApplication {
   workerName: string;
   bidAmount: number;
   coverLetter: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN' | 'COMPLETED' | 'IN_PROGRESS';
   createdAt: string;
   updatedAt: string;
 }
