@@ -4,8 +4,8 @@ import com.workerdemo.exception.TooManyRequestsException;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
-import io.github.bucket4j.Refill;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -36,6 +36,8 @@ public class RateLimitingAspect {
 
     @Nullable
     private final ProxyManager<String> proxyManager;
+    private final MeterRegistry meterRegistry;
+    private final com.workerdemo.security.BotDetectionService botDetectionService;
     private final Map<String, Bucket> localBuckets = new ConcurrentHashMap<>();
 
     @Around("@annotation(rateLimit)")
@@ -67,9 +69,16 @@ public class RateLimitingAspect {
             }
 
             if (bucket.tryConsume(1)) {
+                meterRegistry.counter("ratelimit.success", "key", key).increment();
                 return joinPoint.proceed();
             } else {
                 log.warn("Rate limit exceeded for key: {}", key);
+                meterRegistry.counter("ratelimit.exceeded", "key", key).increment();
+                
+                // Track violation for bot detection
+                String identifier = resolveIdentifier(request);
+                botDetectionService.recordViolation(identifier);
+                
                 throw new TooManyRequestsException("Too many requests. Please try again later.");
             }
         } catch (TooManyRequestsException e) {
@@ -82,13 +91,23 @@ public class RateLimitingAspect {
     }
 
     private String resolveKey(HttpServletRequest request, ProceedingJoinPoint joinPoint, RateLimit rateLimit) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String identifier = (authentication != null && authentication.isAuthenticated()) 
-                ? authentication.getName() 
-                : request.getRemoteAddr();
-        
+        String identifier = resolveIdentifier(request);
         String methodName = joinPoint.getSignature().toShortString();
         String prefix = rateLimit.key().isEmpty() ? methodName : rateLimit.key();
         return prefix + "_" + identifier;
+    }
+
+    private String resolveIdentifier(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return authentication.getName();
+        }
+        
+        // Handle X-Forwarded-For for proxy/load balancer environments
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isEmpty()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
