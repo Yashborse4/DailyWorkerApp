@@ -5,6 +5,7 @@ import com.workerdemo.dto.chat.ChatRoomResponse;
 import com.workerdemo.dto.chat.UnreadCountResponse;
 import com.workerdemo.entity.ChatRoom;
 import com.workerdemo.entity.User;
+import com.workerdemo.ratelimit.RateLimit;
 import com.workerdemo.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +41,7 @@ public class ChatController {
 
     @PostMapping("/rooms")
     @Operation(summary = "Get or create a chat room with a specific user")
+    @RateLimit(capacity = 10, tokensPerPeriod = 10, periodInSeconds = 60, key = "chat_room_create")
     public ResponseEntity<ChatRoom> getOrCreateRoom(
             @RequestParam Long targetUserId,
             @AuthenticationPrincipal User user
@@ -49,6 +51,7 @@ public class ChatController {
 
     @PostMapping("/rooms/{roomId}/messages")
     @Operation(summary = "Send a message to a chat room")
+    @RateLimit(capacity = 15, tokensPerPeriod = 15, periodInSeconds = 60, key = "chat_message_send")
     public ResponseEntity<ChatMessageDto> sendMessage(
             @PathVariable Long roomId,
             @RequestBody String content,

@@ -54,4 +54,11 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authenticationService.refreshToken(request.getRefreshToken()));
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout user and invalidate token")
+    public ResponseEntity<Void> logout() {
+        // This method will be intercepted by Spring Security's logout filter
+        return ResponseEntity.ok().build();
+    }
 }

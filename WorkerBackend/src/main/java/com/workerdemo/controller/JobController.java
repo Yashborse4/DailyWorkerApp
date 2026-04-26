@@ -4,6 +4,7 @@ import com.workerdemo.dto.JobRequest;
 import com.workerdemo.dto.JobResponse;
 import com.workerdemo.entity.JobStatus;
 import com.workerdemo.entity.User;
+import com.workerdemo.ratelimit.RateLimit;
 import com.workerdemo.service.JobService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ public class JobController {
 
     @PostMapping
     @Operation(summary = "Create a new job posting")
+    @RateLimit(capacity = 5, tokensPerPeriod = 5, periodInSeconds = 3600, key = "job_create")
     public ResponseEntity<JobResponse> createJob(
             @Valid @RequestBody JobRequest request,
             @AuthenticationPrincipal User user
