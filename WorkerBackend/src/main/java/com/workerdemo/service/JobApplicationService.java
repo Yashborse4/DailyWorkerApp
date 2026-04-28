@@ -10,7 +10,6 @@ import com.workerdemo.exception.BusinessException;
 import com.workerdemo.exception.ErrorCode;
 import com.workerdemo.repository.JobApplicationRepository;
 import com.workerdemo.repository.JobRepository;
-import com.workerdemo.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

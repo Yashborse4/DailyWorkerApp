@@ -26,6 +26,7 @@ public class NotificationProcessor {
     private int batchSize;
 
     @Scheduled(fixedDelay = 60000) // Increased frequency to 1 minute
+    @Transactional
     protected void processQueue() {
         if (!isProcessing.compareAndSet(false, true)) return;
         try {

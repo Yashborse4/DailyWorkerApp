@@ -29,6 +29,7 @@ public class ChatMessage {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
+    @Builder.Default
     private boolean isRead = false;
 
     @PrePersist
