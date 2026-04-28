@@ -3,6 +3,7 @@ package com.workerdemo.controller;
 import com.workerdemo.dto.WorkerProfileRequest;
 import com.workerdemo.dto.WorkerProfileResponse;
 import com.workerdemo.entity.User;
+import com.workerdemo.ratelimit.RateLimit;
 import com.workerdemo.service.WorkerProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ public class WorkerProfileController {
 
     @PostMapping("/profile")
     @Operation(summary = "Create or update current user's worker profile")
+    @RateLimit(capacity = 10, tokensPerPeriod = 10, periodInSeconds = 3600, key = "worker_profile_update")
     public ResponseEntity<WorkerProfileResponse> createOrUpdateProfile(
             @Valid @RequestBody WorkerProfileRequest request,
             @AuthenticationPrincipal User user

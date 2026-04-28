@@ -37,7 +37,7 @@ public class PiiMaskingConverter extends MessageConverter {
 
     private String maskEmails(String message) {
         // Simple mask: user@example.com -> u***@example.com
-        Matcher matcher = Pattern.compile("([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]*)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})").matcher(message);
+        Matcher matcher = EMAIL_PATTERN.matcher(message);
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             String firstChar = matcher.group(1);

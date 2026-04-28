@@ -1,7 +1,6 @@
 package com.workerdemo.exception;
 
 import com.workerdemo.dto.ErrorResponse;
-import com.workerdemo.exception.TooManyRequestsException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
@@ -26,12 +26,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException ex, HttpServletRequest request) {
         log.error("Circuit breaker is OPEN: {}", ex.getMessage());
         
-        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR; // Or a more specific one if defined
+        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .errorCode("ERR_RES_001")
-                .error("Service Unavailable")
+                .status(errorCode.getStatus().value())
+                .errorCode("ERR_RES_001") // Keeping the specific circuit breaker error code
+                .error(errorCode.getStatus().getReasonPhrase())
                 .message("The service is temporarily unavailable due to high load or failure. Please try again later.")
                 .path(request.getRequestURI())
                 .traceId(MDC.get("traceId"))
@@ -44,6 +44,23 @@ public class GlobalExceptionHandler {
         log.warn("Rate limit exceeded: {}", ex.getMessage());
         
         ErrorCode errorCode = ErrorCode.TOO_MANY_REQUESTS;
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(errorCode.getStatus().value())
+                .errorCode(errorCode.getCode())
+                .error(errorCode.getStatus().getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(MDC.get("traceId"))
+                .build();
+        return new ResponseEntity<>(error, errorCode.getStatus());
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
+        log.warn("User not found: {}", ex.getMessage());
+        
+        ErrorCode errorCode = ErrorCode.USER_NOT_FOUND;
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(errorCode.getStatus().value())
@@ -179,6 +196,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .errorCode("ERR_GEN_002")
                 .error("Internal Server Error")
+                // TODO: [Production-Readiness] Mask 'ex.getMessage()' in production to avoid internal detail leakage
                 .message("An unexpected error occurred: " + ex.getMessage())
                 .path(request.getRequestURI())
                 .traceId(MDC.get("traceId"))
