@@ -3,6 +3,7 @@ package com.workerdemo.security;
 import com.workerdemo.ratelimit.ConcurrencyLimitFilter;
 import com.workerdemo.security.jwt.JwtAuthenticationEntryPoint;
 import com.workerdemo.security.jwt.JwtAuthenticationFilter;
+import com.workerdemo.security.IpBlacklistFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,8 +59,8 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // TODO: [Production-Readiness] Secure /actuator/** endpoints (e.g., restrict to ADMIN or internal IP)
-                .requestMatchers("/api/v1/auth/**", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/ws/**").authenticated()
                 .anyRequest().authenticated()
             )
