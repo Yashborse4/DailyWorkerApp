@@ -7,9 +7,10 @@ import com.workerdemo.entity.User;
 import com.workerdemo.entity.WorkerProfile;
 import com.workerdemo.exception.BusinessException;
 import com.workerdemo.exception.ErrorCode;
-import com.workerdemo.repository.UserRepository;
 import com.workerdemo.repository.WorkerProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class WorkerProfileService {
 
     private final WorkerProfileRepository workerProfileRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Transactional
+    @CacheEvict(value = "workerProfiles", key = "#user.id")
     public WorkerProfileResponse createOrUpdateProfile(WorkerProfileRequest request, User user) {
         WorkerProfile profile = workerProfileRepository.findByUser(user)
                 .orElse(WorkerProfile.builder().user(user).build());
@@ -44,13 +46,14 @@ public class WorkerProfileService {
         // Upgrade user role to WORKER if not already
         if (user.getRole() != Role.WORKER && user.getRole() != Role.ADMIN) {
             user.setRole(Role.WORKER);
-            userRepository.save(user);
+            userService.save(user);
         }
 
         WorkerProfile savedProfile = workerProfileRepository.save(profile);
         return mapToResponse(savedProfile);
     }
 
+    @Cacheable(value = "workerProfiles", key = "#userId", unless = "#result == null")
     public WorkerProfileResponse getProfile(Long userId) {
         return workerProfileRepository.findByUserId(userId)
                 .map(this::mapToResponse)

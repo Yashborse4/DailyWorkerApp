@@ -9,14 +9,11 @@ import com.workerdemo.entity.ChatRoom;
 import com.workerdemo.entity.User;
 import com.workerdemo.repository.ChatMessageRepository;
 import com.workerdemo.repository.ChatRoomRepository;
-import com.workerdemo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +24,7 @@ public class ChatService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     public List<ChatRoomResponse> getUserRooms(User user) {
         return chatRoomRepository.findByWorkerOrHirer(user, user).stream()
@@ -67,8 +64,8 @@ public class ChatService {
 
     @Transactional
     public ChatRoom getOrCreateRoom(Long userId1, Long userId2) {
-        User user1 = userRepository.findById(userId1).orElseThrow();
-        User user2 = userRepository.findById(userId2).orElseThrow();
+        User user1 = userService.findById(userId1);
+        User user2 = userService.findById(userId2);
 
         return chatRoomRepository.findByParticipants(user1, user2)
                 .orElseGet(() -> chatRoomRepository.save(ChatRoom.builder()
@@ -80,7 +77,7 @@ public class ChatService {
     @Transactional
     public ChatMessageDto saveMessage(Long chatRoomId, Long userId, String content) {
         ChatRoom room = chatRoomRepository.findById(chatRoomId).orElseThrow();
-        User sender = userRepository.findById(userId).orElseThrow();
+        User sender = userService.findById(userId);
 
         ChatMessage message = ChatMessage.builder()
                 .chatRoom(room)
@@ -178,7 +175,7 @@ public class ChatService {
     }
 
     public UnreadCountResponse getUnreadMessageCount(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userService.findById(userId);
         long count = chatRoomRepository.findByWorkerOrHirer(user, user).stream()
                 .mapToLong(room -> chatMessageRepository.countByChatRoomAndSenderNotAndIsReadFalse(room, user))
                 .sum();

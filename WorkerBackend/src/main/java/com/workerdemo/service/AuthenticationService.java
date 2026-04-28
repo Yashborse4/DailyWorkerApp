@@ -7,7 +7,6 @@ import com.workerdemo.entity.Role;
 import com.workerdemo.entity.User;
 import com.workerdemo.exception.BusinessException;
 import com.workerdemo.exception.ErrorCode;
-import com.workerdemo.repository.UserRepository;
 import com.workerdemo.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
@@ -31,11 +30,11 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .build();
-        userRepository.save(user);
+        userService.save(user);
         var accessToken = jwtTokenProvider.generateAccessToken(user);
         var refreshToken = jwtTokenProvider.generateRefreshToken(user);
         user.setRefreshToken(refreshToken);
-        userRepository.save(user);
+        userService.save(user);
         
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
@@ -50,12 +49,11 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "User not found"));
+        User user = userService.findByUsername(request.getUsername());
         var accessToken = jwtTokenProvider.generateAccessToken(user);
         var refreshToken = jwtTokenProvider.generateRefreshToken(user);
         user.setRefreshToken(refreshToken);
-        userRepository.save(user);
+        userService.save(user);
         
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
@@ -64,19 +62,18 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse refreshToken(String refreshToken) {
-        if (!jwtTokenProvider.validateToken(refreshToken) || !jwtTokenProvider.isRefreshToken(refreshToken)) {
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
             throw new BusinessException(ErrorCode.BAD_CREDENTIALS, "Invalid Refresh Token");
         }
         
         String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "User with given refresh token not found"));
+        User user = userService.findByUsername(username);
         
         if (refreshToken.equals(user.getRefreshToken())) {
             var newAccessToken = jwtTokenProvider.generateAccessToken(user);
             var newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
             user.setRefreshToken(newRefreshToken);
-            userRepository.save(user);
+            userService.save(user);
             
             return AuthenticationResponse.builder()
                     .accessToken(newAccessToken)

@@ -3,6 +3,8 @@ package com.workerdemo.service;
 import com.workerdemo.entity.User;
 import com.workerdemo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,22 +15,26 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    @Cacheable(value = "users", key = "#id", unless = "#result == null")
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
+    @Cacheable(value = "users", key = "#username", unless = "#result == null")
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public User save(User user) {
         return userRepository.save(user);
     }
 
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public void unlockUser(String username) {
         User user = findByUsername(username);
         user.setFailedLoginAttempts(0);
