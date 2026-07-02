@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email : " + usernameOrEmail)));
 
-        return UserPrincipal.create(user);
+        return user;
     }
 
     @Transactional
@@ -31,6 +31,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 () -> new UsernameNotFoundException("User not found with id : " + id)
         );
 
-        return UserPrincipal.create(user);
+        return user;
     }
 }

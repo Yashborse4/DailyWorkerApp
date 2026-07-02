@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedButton } from '../../components/common/ThemedButton';
-import { BilingualText } from '../../components/common/BilingualText';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
 import * as workerService from '../../api/workerService';
@@ -13,7 +13,7 @@ import * as workerService from '../../api/workerService';
 export const VerificationScreen = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { updateProfile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const navigation = useNavigation();
 
   const handleUpload = async () => {
@@ -24,17 +24,17 @@ export const VerificationScreen = () => {
           ...currentProfile,
           verificationStatus: 'pending'
         });
-        await updateProfile({ verificationStatus: 'pending' }); // Update local context too
+        await updateProfile({ verificationStatus: 'pending' });
       }
       
       Alert.alert(
-        'Success / सफल',
-        'Verification documents uploaded! We will review them shortly.\nसत्यापन दस्तावेज़ अपलोड हो गए! हम जल्द ही उनकी समीक्षा करेंगे।'
+        t('common:success'),
+        t('common:verification_uploaded_msg')
       );
       navigation.goBack();
     } catch (error) {
       console.error('Error uploading verification:', error);
-      Alert.alert('Error', 'Failed to submit verification.');
+      Alert.alert(t('common:error'), t('common:failed_submit_verification'));
     }
   };
 
@@ -47,26 +47,20 @@ export const VerificationScreen = () => {
         accessibilityLabel="Go back"
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <ThemedText style={{ fontSize: 22 }}>←</ThemedText>
+        <Ionicons name="arrow-back-outline" size={24} color={theme.Colors.onBackground} />
       </TouchableOpacity>
 
       {/* Title */}
-      <BilingualText
-        primary={t('profile_verification')}
-        secondary="प्रोफ़ाइल सत्यापन"
-        type="headline"
-        size="medium"
-        weight="800"
-        icon="🛡️"
-        style={styles.title}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 8 }}>
+        <Ionicons name="shield-checkmark-outline" size={24} color={theme.Colors.primary} style={{ marginRight: 8 }} />
+        <ThemedText type="headline" size="medium" weight="800">
+          {t('common:profile_verification')}
+        </ThemedText>
+      </View>
 
       {/* Subtitle */}
-      <ThemedText type="body" color={theme.Colors.grey[500]} style={styles.subtitle}>
-        {t('verified_workers_info')}
-      </ThemedText>
-      <ThemedText type="body" size="small" color={theme.Colors.grey[400]} style={{ marginBottom: 32 }}>
-        सत्यापित कामगारों को 3 गुना अधिक काम और तेज भुगतान मिलता है।
+      <ThemedText type="body" color={theme.Colors.grey[500]} style={[styles.subtitle, { marginBottom: 32 }]}>
+        {t('common:verified_workers_info')}
       </ThemedText>
 
       {/* Step Indicator */}
@@ -76,7 +70,7 @@ export const VerificationScreen = () => {
             <ThemedText weight="800" style={{ color: '#fff', fontSize: 14 }}>1</ThemedText>
           </View>
           <ThemedText type="label" size="small" weight="600" color={theme.Colors.primary}>
-            Aadhaar / आधार
+            {t('common:aadhaar')}
           </ThemedText>
         </View>
         <View style={[styles.stepLine, { backgroundColor: theme.Colors.grey[200] }]} />
@@ -85,7 +79,7 @@ export const VerificationScreen = () => {
             <ThemedText weight="800" style={{ color: '#fff', fontSize: 14 }}>2</ThemedText>
           </View>
           <ThemedText type="label" size="small" weight="600" color={theme.Colors.grey[400]}>
-            Selfie / सेल्फी
+            {t('common:selfie')}
           </ThemedText>
         </View>
         <View style={[styles.stepLine, { backgroundColor: theme.Colors.grey[200] }]} />
@@ -94,7 +88,7 @@ export const VerificationScreen = () => {
             <ThemedText weight="800" style={{ color: '#fff', fontSize: 14 }}>3</ThemedText>
           </View>
           <ThemedText type="label" size="small" weight="600" color={theme.Colors.grey[400]}>
-            Submit / जमा
+            {t('common:submit')}
           </ThemedText>
         </View>
       </View>
@@ -105,17 +99,12 @@ export const VerificationScreen = () => {
           style={[styles.uploadBox, { borderColor: theme.Colors.primary, backgroundColor: theme.Colors.primary + '08' }]}
           accessibilityLabel="Upload Aadhaar front photo"
         >
-          <ThemedText style={{ fontSize: 40 }}>🪪</ThemedText>
-          <BilingualText
-            primary={t('upload_aadhaar_front')}
-            secondary="आधार का अगला भाग अपलोड करें"
-            type="title"
-            size="small"
-            weight="700"
-            align="center"
-          />
+          <Ionicons name="card-outline" size={40} color={theme.Colors.primary} />
+          <ThemedText type="title" size="small" weight="700" style={{ textAlign: 'center' }}>
+            {t('common:upload_aadhaar_front')}
+          </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.primary} style={{ marginTop: 4 }}>
-            Tap here / यहाँ टैप करें ☝️
+            {t('common:tap_here')} ☝️
           </ThemedText>
         </TouchableOpacity>
 
@@ -123,26 +112,21 @@ export const VerificationScreen = () => {
           style={[styles.uploadBox, { borderColor: theme.Colors.secondary, backgroundColor: theme.Colors.secondary + '08' }]}
           accessibilityLabel="Take a selfie photo"
         >
-          <ThemedText style={{ fontSize: 40 }}>📸</ThemedText>
-          <BilingualText
-            primary={t('take_selfie')}
-            secondary="सेल्फी लें"
-            type="title"
-            size="small"
-            weight="700"
-            align="center"
-          />
+          <Ionicons name="camera-outline" size={40} color={theme.Colors.secondary} />
+          <ThemedText type="title" size="small" weight="700" style={{ textAlign: 'center' }}>
+            {t('common:selfie')}
+          </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.secondary} style={{ marginTop: 4 }}>
-            Tap here / यहाँ टैप करें ☝️
+            {t('common:tap_here')} ☝️
           </ThemedText>
         </TouchableOpacity>
       </View>
 
       <ThemedButton
-        title={`${t('submit_review')} / समीक्षा के लिए जमा करें`}
+        title={t('common:submit_review')}
         onPress={handleUpload}
         style={styles.submitBtn}
-        icon={<ThemedText style={{ fontSize: 18 }}>✅</ThemedText>}
+        icon={<Ionicons name="checkmark-outline" size={18} color="#fff" />}
       />
     </ThemedView>
   );

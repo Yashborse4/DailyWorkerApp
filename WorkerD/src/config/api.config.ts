@@ -1,14 +1,22 @@
 import { Platform } from 'react-native';
 
+const DEV_BASE_URL = Platform.select({
+  android: 'http://10.0.2.2:8090/api/v1',
+  ios: 'http://localhost:8090/api/v1',
+  default: 'http://localhost:8090/api/v1',
+});
+
+export const getBaseUrl = () => {
+  return __DEV__ ? DEV_BASE_URL : 'https://api.workerd.com/api/v1';
+};
+
 /**
  * API Configuration
  * 
  * Provides centralized management of API endpoints and timeouts.
  */
 export const API_CONFIG = {
-  // Use machine IP for both Emulator and Physical devices on the same network
-  // Fallback to 10.0.2.2 for Android Emulator if IP is not reachable
-  BASE_URL: 'http://192.168.1.5:8090/api/v1',
+  BASE_URL: getBaseUrl(),
   
   // Alternative URLs for different environments
   ENV: {
@@ -16,19 +24,10 @@ export const API_CONFIG = {
     EMULATOR_IOS: 'http://localhost:8090/api/v1',
   },
   
-  TIMEOUT: 15000, // 15 seconds
+  TIMEOUT: 15000,
   
   HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-};
-
-/**
- * Returns the resolved base URL based on the platform and reachability.
- * In a real-world app, this might involve environment variables.
- */
-export const getBaseUrl = () => {
-  // Add logic here if you want to dynamically switch based on __DEV__
-  return API_CONFIG.BASE_URL;
 };

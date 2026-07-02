@@ -7,6 +7,7 @@ import {
   Platform,
   View,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '../common/ThemedText';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -128,7 +129,11 @@ export const QuickActionButton: React.FC<QuickActionButtonProps> = ({
 
         <View style={styles.contentRow}>
           <View style={styles.iconCircle}>
-            <ThemedText style={styles.icon}>{icon}</ThemedText>
+            {icon.length > 2 ? (
+              <Ionicons name={icon} size={24} color="#fff" />
+            ) : (
+              <ThemedText style={styles.icon}>{icon}</ThemedText>
+            )}
           </View>
           <ThemedText weight="700" style={styles.label}>
             {label}

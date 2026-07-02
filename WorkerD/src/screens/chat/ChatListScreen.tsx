@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedCard } from '../../components/common/ThemedCard';
-import { BilingualText } from '../../components/common/BilingualText';
 import { useChat } from '../../context/ChatContext';
 import { useTheme } from '../../hooks/useTheme';
 import { ChatRoom } from '../../types';
@@ -68,38 +68,36 @@ export const ChatListScreen = () => {
 
   const EmptyState = () => (
     <View style={styles.empty}>
-      <ThemedText style={{ fontSize: 64, marginBottom: 16 }}>💬</ThemedText>
-      <BilingualText
-        primary={t('no_conversations')}
-        secondary="अभी कोई बातचीत नहीं"
+      <Ionicons name="chatbubbles-outline" size={64} color={theme.Colors.grey[400]} style={{ marginBottom: 16 }} />
+      <ThemedText
         type="title"
         size="small"
         weight="600"
-        align="center"
         color={theme.Colors.grey[400]}
-      />
+        style={{ textAlign: 'center' }}
+      >
+        {t('no_conversations')}
+      </ThemedText>
       <ThemedText
         type="body"
         size="small"
         color={theme.Colors.grey[400]}
         style={{ marginTop: 8, textAlign: 'center' }}
       >
-        {t('start_chatting')} / नियोक्ताओं से बात शुरू करें
+        {t('start_chatting')}
       </ThemedText>
     </View>
   );
-
+ 
   return (
     <ThemedView style={styles.container}>
       <View style={styles.headerContainer}>
-        <BilingualText
-          primary={t('messages')}
-          secondary="संदेश"
-          type="headline"
-          size="small"
-          weight="800"
-          icon="💬"
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="chatbubble-ellipses-outline" size={24} color={theme.Colors.primary} style={{ marginRight: 8 }} />
+          <ThemedText type="headline" size="small" weight="800">
+            {t('common:messages')}
+          </ThemedText>
+        </View>
       </View>
       <FlatList
         data={rooms}

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '../common/ThemedText';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -136,7 +137,11 @@ export const JobCard: React.FC<JobCardProps> = ({
         {/* Main row */}
         <View style={styles.mainRow}>
           <View style={[styles.iconBox, { backgroundColor: accent + '12' }]}>
-            <ThemedText style={styles.iconText}>{icon}</ThemedText>
+            {icon.length > 2 ? (
+              <Ionicons name={icon} size={24} color={accent} />
+            ) : (
+              <ThemedText style={styles.iconText}>{icon}</ThemedText>
+            )}
           </View>
 
           <View style={styles.infoCol}>

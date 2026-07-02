@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, FlatList, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { useChat } from '../../context/ChatContext';
@@ -16,6 +18,7 @@ export const ChatRoomScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ChatRoom'>>();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { roomId } = route.params;
   const { activeRoom, setActiveRoomId, sendMessage } = useChat();
@@ -38,7 +41,7 @@ export const ChatRoomScreen = () => {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header — Fixed back button using text instead of broken Ionicons */}
+      {/* Header — Fixed back button using Ionicons */}
       <View style={[styles.header, { borderBottomColor: theme.md3.colors.outlineVariant }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -46,7 +49,7 @@ export const ChatRoomScreen = () => {
           accessibilityLabel="Go back"
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <ThemedText style={{ fontSize: 22, color: theme.md3.colors.onSurface }}>←</ThemedText>
+          <Ionicons name="arrow-back-outline" size={24} color={theme.md3.colors.onSurface} />
         </TouchableOpacity>
 
         <View style={[styles.avatar, { backgroundColor: theme.md3.colors.primaryContainer }]}>
@@ -60,7 +63,7 @@ export const ChatRoomScreen = () => {
           <View style={styles.onlineRow}>
             <View style={[styles.onlineDot, { backgroundColor: theme.Colors.success }]} />
             <ThemedText type="label" size="small" color={theme.Colors.success}>
-              Online / ऑनलाइन
+              {t('common:online')}
             </ThemedText>
           </View>
         </View>

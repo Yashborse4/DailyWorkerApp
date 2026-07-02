@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Alert, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Alert, ScrollView, Dimensions, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { initI18n } from '../../i18n';
 import { ThemedView } from '../../components/common/ThemedView';
@@ -7,6 +7,7 @@ import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedButton } from '../../components/common/ThemedButton';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../../constants';
@@ -30,6 +31,13 @@ export const AuthScreen = () => {
   const [selectedRole, setSelectedRoleLocal] = useState<'worker' | 'hirer' | null>(null);
   const [businessName, setBusinessName] = useState('');
   const [hiringCategory, setHiringCategory] = useState('');
+
+  // Input Focus States
+  const [isPhoneFocused, setIsPhoneFocused] = useState(false);
+  const [isOtpFocused, setIsOtpFocused] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
+  const [isBusinessNameFocused, setIsBusinessNameFocused] = useState(false);
+  const [isHiringCategoryFocused, setIsHiringCategoryFocused] = useState(false);
 
   const { theme } = useTheme();
   const { signIn, verifyOTP, changeLanguage, updateProfile, selectRole } = useAuth();
@@ -94,32 +102,58 @@ export const AuthScreen = () => {
 
   const renderRole = () => (
     <View style={styles.centerStep}>
-      <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>I want to...</ThemedText>
+      <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>
+        {t('onboarding:select_role_title', 'I want to...')}
+      </ThemedText>
       <View style={styles.roleGrid}>
         <TouchableOpacity 
-          style={[styles.roleBox, { borderColor: theme.Colors.grey[200] }, selectedRole === 'worker' && { borderColor: theme.Colors.primary, backgroundColor: theme.Colors.primary + '10' }]}
+          style={[
+            styles.roleBox, 
+            { borderColor: theme.Colors.grey[200], backgroundColor: theme.Colors.surface }, 
+            selectedRole === 'worker' && { borderColor: theme.Colors.primary, backgroundColor: theme.Colors.primary + '10' }
+          ]}
           onPress={async () => { 
             setSelectedRoleLocal('worker');
             await selectRole('worker');
             setStep('PROFILE');
           }}
         >
-          <ThemedText style={{ fontSize: 48 }}>👷</ThemedText>
-          <ThemedText type="title" size="medium" weight="700">Find Work</ThemedText>
-          <ThemedText type="label" style={{ opacity: 0.6 }}>I am a Worker</ThemedText>
+          <Ionicons 
+            name="construct-outline" 
+            size={48} 
+            color={selectedRole === 'worker' ? theme.Colors.primary : theme.Colors.grey[400]} 
+          />
+          <ThemedText type="title" size="medium" weight="700">
+            {t('onboarding:role_worker', 'Find Work')}
+          </ThemedText>
+          <ThemedText type="label" style={{ opacity: 0.6 }}>
+            {t('onboarding:role_worker_desc', 'I am a Worker')}
+          </ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.roleBox, { borderColor: theme.Colors.grey[200] }, selectedRole === 'hirer' && { borderColor: theme.Colors.secondary, backgroundColor: theme.Colors.secondary + '10' }]}
+          style={[
+            styles.roleBox, 
+            { borderColor: theme.Colors.grey[200], backgroundColor: theme.Colors.surface }, 
+            selectedRole === 'hirer' && { borderColor: theme.Colors.secondary, backgroundColor: theme.Colors.secondary + '10' }
+          ]}
           onPress={async () => { 
             setSelectedRoleLocal('hirer');
             await selectRole('hirer');
             setStep('PROFILE');
           }}
         >
-          <ThemedText style={{ fontSize: 48 }}>🏢</ThemedText>
-          <ThemedText type="title" size="medium" weight="700">Hire Workers</ThemedText>
-          <ThemedText type="label" style={{ opacity: 0.6 }}>I am a Hirer</ThemedText>
+          <Ionicons 
+            name="business-outline" 
+            size={48} 
+            color={selectedRole === 'hirer' ? theme.Colors.secondary : theme.Colors.grey[400]} 
+          />
+          <ThemedText type="title" size="medium" weight="700">
+            {t('onboarding:role_hirer', 'Hire Workers')}
+          </ThemedText>
+          <ThemedText type="label" style={{ opacity: 0.6 }}>
+            {t('onboarding:role_hirer_desc', 'I am a Hirer')}
+          </ThemedText>
         </TouchableOpacity>
       </View>
     </View>
@@ -128,18 +162,18 @@ export const AuthScreen = () => {
   const renderLanguage = () => (
     <View style={styles.centerStep}>
       <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>WorkerD</ThemedText>
-      <ThemedText type="body" style={styles.whatsappSubtitle}>Choose your language</ThemedText>
+      <ThemedText type="body" style={styles.whatsappSubtitle}>Choose your language / भाषा चुनें</ThemedText>
       <ScrollView contentContainerStyle={styles.tileScroll} showsVerticalScrollIndicator={false} style={{ width: '100%', flex: 1 }}>
         <View style={styles.tileContainer}>
           {[
             { c: 'hi', l: 'हिन्दी' },
-            { c: 'mr', l: 'मরাঠি' },
+            { c: 'mr', l: 'मराठी' },
             { c: 'en', l: 'English' },
             { c: 'bn', l: 'বাংলা' },
             { c: 'te', l: 'తెలుగు' },
             { c: 'ta', l: 'தமிழ்' },
             { c: 'gu', l: 'ગુજરાતી' },
-            { c: 'kn', l: 'കടന്നഡ' },
+            { c: 'kn', l: 'ಕನ್ನಡ' },
             { c: 'ml', l: 'മലയാളം' },
             { c: 'pa', l: 'ਪੰਜਾਬੀ' },
             { c: 'ur', l: 'اردو' },
@@ -168,7 +202,9 @@ export const AuthScreen = () => {
             setStep('PHONE'); 
           }}
         >
-          <ThemedText style={{ color: theme.Colors.white, fontSize: 16, fontWeight: 'bold' }}>CONTINUE</ThemedText>
+          <ThemedText style={{ color: theme.Colors.white, fontSize: 16, fontWeight: 'bold' }}>
+            {t('onboarding:continue', 'CONTINUE')}
+          </ThemedText>
         </TouchableOpacity>
       )}
       <View style={styles.bypassArea}>
@@ -194,16 +230,24 @@ export const AuthScreen = () => {
   const renderPhone = () => (
     <View style={styles.centerStep}>
       <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>{t('onboarding:login_promo')}</ThemedText>
-      <View style={[styles.whatsappInputWrapper, { borderBottomColor: theme.Colors.primary }]}>
+      <View style={[
+        styles.inputContainer, 
+        { 
+          borderColor: isPhoneFocused ? theme.Colors.primary : theme.Colors.grey[300],
+          backgroundColor: theme.Colors.surface,
+        }
+      ]}>
         <ThemedText type="title" size="large" weight="700" style={{ marginRight: 15 }}>+91</ThemedText>
         <TextInput 
           style={[styles.whatsappInput, { color: theme.Colors.onBackground }]}
-          placeholder="Mobile Number"
+          placeholder={t('onboarding:enter_id', 'Mobile Number')}
           placeholderTextColor={theme.Colors.grey[400]}
           keyboardType="phone-pad"
           maxLength={10}
           value={phone}
           onChangeText={setPhone}
+          onFocus={() => setIsPhoneFocused(true)}
+          onBlur={() => setIsPhoneFocused(false)}
           autoFocus
         />
       </View>
@@ -211,13 +255,15 @@ export const AuthScreen = () => {
         style={[styles.whatsappFab, { backgroundColor: theme.Colors.primary }]}
         onPress={handleNext}
       >
-        <ThemedText style={{ color: theme.Colors.white, fontSize: 24, fontWeight: 'bold' }}>{"\u2192"}</ThemedText>
+        <Ionicons name="arrow-forward" size={24} color={theme.Colors.white} />
       </TouchableOpacity>
       <TouchableOpacity 
         style={{ marginTop: 20 }}
         onPress={() => setStep('LANGUAGE')}
       >
-        <ThemedText color={theme.Colors.primary} weight="600">Change Language / ভাষা পরিবর্তন করুন</ThemedText>
+        <ThemedText color={theme.Colors.primary} weight="600">
+          {t('onboarding:change_language', 'Change Language / भाषा बदलें')}
+        </ThemedText>
       </TouchableOpacity>
 
       <View style={[styles.bypassArea, { marginTop: 40 }]}>
@@ -242,17 +288,37 @@ export const AuthScreen = () => {
 
   const renderOTP = () => (
     <View style={styles.centerStep}>
-      <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>Verify Number</ThemedText>
-      <ThemedText type="body" style={styles.whatsappSubtitle}>Enter 6-digit code sent to +91 {phone}</ThemedText>
-      <View style={styles.whatsappInputWrapper}>
+      <ThemedText type="headline" size="large" weight="800" style={styles.whatsappTitle}>
+        {t('onboarding:verify_title', 'Verify Number')}
+      </ThemedText>
+      <ThemedText type="body" style={styles.whatsappSubtitle}>
+        {t('onboarding:verify_subtitle', { identifier: `+91 ${phone}` })}
+      </ThemedText>
+      <View style={[
+        styles.inputContainer, 
+        { 
+          borderColor: isOtpFocused ? theme.Colors.primary : theme.Colors.grey[300],
+          backgroundColor: theme.Colors.surface,
+        }
+      ]}>
         <TextInput 
-          style={[styles.whatsappInput, { letterSpacing: 10, textAlign: 'center', fontSize: 28, borderBottomWidth: 2, borderBottomColor: theme.Colors.primary, color: theme.Colors.onBackground }]}
+          style={[
+            styles.whatsappInput, 
+            { 
+              letterSpacing: 10, 
+              textAlign: 'center', 
+              fontSize: 24, 
+              color: theme.Colors.onBackground 
+            }
+          ]}
           placeholder="000000"
           placeholderTextColor={theme.Colors.grey[300]}
           keyboardType="number-pad"
           maxLength={6}
           value={otp}
           onChangeText={setOtp}
+          onFocus={() => setIsOtpFocused(true)}
+          onBlur={() => setIsOtpFocused(false)}
           autoFocus
         />
       </View>
@@ -260,46 +326,73 @@ export const AuthScreen = () => {
         style={[styles.whatsappFab, { backgroundColor: theme.Colors.primary }]}
         onPress={handleNext}
       >
-        <ThemedText style={{ color: theme.Colors.white, fontSize: 24, fontWeight: 'bold' }}>{"\u2713"}</ThemedText>
+        <Ionicons name="checkmark" size={24} color={theme.Colors.white} />
       </TouchableOpacity>
     </View>
   );
 
   const renderProfile = () => (
     <ScrollView contentContainerStyle={styles.profileContainer} showsVerticalScrollIndicator={false}>
-      <ThemedText type="headline" size="medium" weight="800" style={styles.whatsappTitle}>{selectedRole === 'worker' ? 'Worker Profile' : 'Hirer Profile'}</ThemedText>
+      <ThemedText type="headline" size="medium" weight="800" style={styles.whatsappTitle}>
+        {selectedRole === 'worker' ? t('common:worker_account') : t('common:hirer_account')}
+      </ThemedText>
       
       {selectedRole === 'worker' ? (
         <>
-          <TextInput 
-            style={[styles.underlineInput, { color: theme.Colors.onBackground, borderBottomColor: theme.Colors.grey[300] }]}
-            placeholder="Your Full Name"
-            placeholderTextColor={theme.Colors.grey[400]}
-            value={name}
-            onChangeText={setName}
-          />
+          <View style={[
+            styles.inputContainer, 
+            { 
+              borderColor: isNameFocused ? theme.Colors.primary : theme.Colors.grey[300],
+              backgroundColor: theme.Colors.surface,
+            }
+          ]}>
+            <TextInput 
+              style={[styles.whatsappInput, { color: theme.Colors.onBackground }]}
+              placeholder={t('onboarding:enter_name', 'Your Full Name')}
+              placeholderTextColor={theme.Colors.grey[400]}
+              value={name}
+              onChangeText={setName}
+              onFocus={() => setIsNameFocused(true)}
+              onBlur={() => setIsNameFocused(false)}
+            />
+          </View>
 
           <TouchableOpacity 
             style={[styles.locationBtn, { backgroundColor: theme.Colors.primary + '10' }]}
             onPress={() => setLocation('Andheri West, Mumbai')}
+            activeOpacity={0.8}
           >
-            <ThemedText color={theme.Colors.primary} weight="600">📍 {location || 'Detect My Location'}</ThemedText>
+            <ThemedText color={theme.Colors.primary} weight="600">
+              <Ionicons name="location" size={16} color={theme.Colors.primary} style={{ marginRight: 6 }} /> {location || t('onboarding:auto_detect', 'Detect My Location')}
+            </ThemedText>
           </TouchableOpacity>
 
           <View style={styles.roleGrid}>
             <TouchableOpacity 
-              style={[styles.roleBox, { borderColor: theme.Colors.grey[200] }, trade === 'skilled' && { borderColor: theme.Colors.primary, backgroundColor: theme.Colors.primary + '10' }]}
+              style={[
+                styles.roleBox, 
+                { borderColor: theme.Colors.grey[200], backgroundColor: theme.Colors.surface }, 
+                trade === 'skilled' && { borderColor: theme.Colors.primary, backgroundColor: theme.Colors.primary + '10' }
+              ]}
               onPress={() => setTrade('skilled')}
             >
-              <ThemedText style={{ fontSize: 32 }}>🔵</ThemedText>
-              <ThemedText type="label" size="medium" weight="700">Skilled</ThemedText>
+              <Ionicons name="ribbon-outline" size={32} color={trade === 'skilled' ? theme.Colors.primary : theme.Colors.grey[400]} />
+              <ThemedText type="label" size="medium" weight="700">
+                {t('onboarding:skilled_worker', 'Skilled')}
+              </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.roleBox, { borderColor: theme.Colors.grey[200] }, trade === 'unskilled' && { borderColor: theme.Colors.secondary, backgroundColor: theme.Colors.secondary + '10' }]}
+              style={[
+                styles.roleBox, 
+                { borderColor: theme.Colors.grey[200], backgroundColor: theme.Colors.surface }, 
+                trade === 'unskilled' && { borderColor: theme.Colors.secondary, backgroundColor: theme.Colors.secondary + '10' }
+              ]}
               onPress={() => setTrade('unskilled')}
             >
-              <ThemedText style={{ fontSize: 32 }}>🟡</ThemedText>
-              <ThemedText type="label" size="medium" weight="700">Unskilled</ThemedText>
+              <Ionicons name="construct-outline" size={32} color={trade === 'unskilled' ? theme.Colors.secondary : theme.Colors.grey[400]} />
+              <ThemedText type="label" size="medium" weight="700">
+                {t('onboarding:unskilled_worker', 'Unskilled')}
+              </ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -308,7 +401,11 @@ export const AuthScreen = () => {
               { (trade === 'skilled' ? ['Electrician', 'Plumber', 'Driver'] : ['Labour', 'Loader', 'Cleaner']).map(s => (
                 <TouchableOpacity 
                   key={s} 
-                  style={[styles.whatsappChip, { borderColor: theme.Colors.grey[200] }, skills.includes(s) && { backgroundColor: theme.Colors.primary, borderColor: theme.Colors.primary }]}
+                  style={[
+                    styles.whatsappChip, 
+                    { borderColor: theme.Colors.grey[200], backgroundColor: theme.Colors.surface }, 
+                    skills.includes(s) && { backgroundColor: theme.Colors.primary, borderColor: theme.Colors.primary }
+                  ]}
                   onPress={() => setSkills(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
                 >
                   <ThemedText type="label" size="small" weight="600" style={{ color: skills.includes(s) ? theme.Colors.white : theme.Colors.onBackground }}>{s}</ThemedText>
@@ -319,33 +416,56 @@ export const AuthScreen = () => {
         </>
       ) : (
         <>
-          <TextInput 
-            style={[styles.underlineInput, { color: theme.Colors.onBackground, borderBottomColor: theme.Colors.grey[300] }]}
-            placeholder="Business / Company Name"
-            placeholderTextColor={theme.Colors.grey[400]}
-            value={businessName}
-            onChangeText={setBusinessName}
-          />
+          <View style={[
+            styles.inputContainer, 
+            { 
+              borderColor: isBusinessNameFocused ? theme.Colors.secondary : theme.Colors.grey[300],
+              backgroundColor: theme.Colors.surface,
+            }
+          ]}>
+            <TextInput 
+              style={[styles.whatsappInput, { color: theme.Colors.onBackground }]}
+              placeholder="Business / Company Name"
+              placeholderTextColor={theme.Colors.grey[400]}
+              value={businessName}
+              onChangeText={setBusinessName}
+              onFocus={() => setIsBusinessNameFocused(true)}
+              onBlur={() => setIsBusinessNameFocused(false)}
+            />
+          </View>
           
-          <TextInput 
-            style={[styles.underlineInput, { color: theme.Colors.onBackground, borderBottomColor: theme.Colors.grey[300] }]}
-            placeholder="Hiring Category (e.g. Construction)"
-            placeholderTextColor={theme.Colors.grey[400]}
-            value={hiringCategory}
-            onChangeText={setHiringCategory}
-          />
+          <View style={[
+            styles.inputContainer, 
+            { 
+              borderColor: isHiringCategoryFocused ? theme.Colors.secondary : theme.Colors.grey[300],
+              backgroundColor: theme.Colors.surface,
+            }
+          ]}>
+            <TextInput 
+              style={[styles.whatsappInput, { color: theme.Colors.onBackground }]}
+              placeholder="Hiring Category (e.g. Construction)"
+              placeholderTextColor={theme.Colors.grey[400]}
+              value={hiringCategory}
+              onChangeText={setHiringCategory}
+              onFocus={() => setIsHiringCategoryFocused(true)}
+              onBlur={() => setIsHiringCategoryFocused(false)}
+            />
+          </View>
 
           <TouchableOpacity 
             style={[styles.locationBtn, { backgroundColor: theme.Colors.secondary + '10' }]}
             onPress={() => setLocation('Andheri West, Mumbai')}
+            activeOpacity={0.8}
           >
-            <ThemedText color={theme.Colors.secondary} weight="600">📍 {location || 'Business Location'}</ThemedText>
+            <ThemedText color={theme.Colors.secondary} weight="600">
+              <Ionicons name="location" size={16} color={theme.Colors.secondary} style={{ marginRight: 6 }} /> {location || 'Business Location'}
+            </ThemedText>
           </TouchableOpacity>
         </>
       )}
 
       <ThemedButton 
-        title="START WORKING" 
+        title={t('onboarding:start_working', 'START WORKING')} 
         onPress={handleComplete}
         style={{ marginTop: 20 }}
       />
@@ -373,12 +493,12 @@ const styles = StyleSheet.create({
   tileScroll: { width: '100%', paddingBottom: 100 },
   tileContainer: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 15 },
   langTile: { width: '47%', paddingVertical: 20, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  whatsappInputWrapper: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 2, width: '100%', paddingBottom: 10, marginTop: 20 },
-  whatsappInput: { flex: 1, fontSize: 24, padding: 0 },
-  whatsappFab: { position: 'absolute', bottom: 30, right: 30, paddingHorizontal: 20, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', elevation: 4 },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 14 : 6, marginTop: 20, width: '100%' },
+  whatsappInput: { flex: 1, fontSize: 20, padding: 0 },
+  whatsappFab: { position: 'absolute', bottom: 30, right: 30, width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', elevation: 4 },
   profileContainer: { paddingTop: 60, gap: 30 },
   underlineInput: { fontSize: 20, borderBottomWidth: 1, paddingVertical: 10 },
-  locationBtn: { padding: 18, borderRadius: 12, alignItems: 'center' },
+  locationBtn: { padding: 18, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
   roleGrid: { flexDirection: 'row', gap: 15 },
   roleBox: { flex: 1, padding: 25, borderRadius: 16, borderWidth: 2, alignItems: 'center', gap: 10 },
   skillsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },

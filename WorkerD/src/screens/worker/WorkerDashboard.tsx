@@ -20,6 +20,7 @@ import * as jobService from '../../api/jobService';
 import * as jobApplicationService from '../../api/jobApplicationService';
 import * as notificationService from '../../api/notificationService';
 import { ActivityIndicator } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -75,24 +76,21 @@ export const WorkerDashboard = () => {
   // ── Derived Data ──────────────────────────────────────
   const stats = [
     { 
-      label: `${t('applied')}`, 
-      labelHi: 'आवेदन', 
+      label: t('applied'), 
       value: appliedCount.toString(), 
-      icon: '📝', 
+      icon: 'document-text-outline', 
       color: theme.Colors.primary 
     },
     { 
-      label: `${t('earning')}`, 
-      labelHi: 'कमाई', 
+      label: t('earning'), 
       value: `₹${(workerProfile?.completedJobsCount || 0) * 500}`, 
-      icon: '💰', 
+      icon: 'cash-outline', 
       color: theme.Colors.secondary 
     },
     { 
-      label: `${t('ratings')}`, 
-      labelHi: 'रेटिंग', 
+      label: t('ratings'), 
       value: workerProfile?.rating?.toFixed(1) || '0.0', 
-      icon: '⭐', 
+      icon: 'star', 
       color: theme.Colors.warning 
     },
   ];
@@ -103,7 +101,7 @@ export const WorkerDashboard = () => {
     location: j.location,
     pay: `₹${j.budget}`,
     type: j.category,
-    icon: '🛠️' // Default icon
+    icon: 'construct-outline'
   }));
 
   const isUnverified = !profile?.verificationStatus || profile.verificationStatus === 'unverified';
@@ -111,6 +109,14 @@ export const WorkerDashboard = () => {
   // ── Stagger timing ───────────────────────────────────
   const BASE_DELAY = 100;
   const STAGGER = 80;
+
+  if (loading) {
+    return (
+      <ThemedView style={[styles.container, styles.loadingState]}>
+        <ActivityIndicator size="large" color={theme.Colors.primary} />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -127,7 +133,7 @@ export const WorkerDashboard = () => {
           subtitle={`${profile?.location || 'Mumbai, India'} • ${profile?.trade || 'Skilled'}`}
           emoji="🙏"
           avatarColor={theme.Colors.primary}
-          avatarIcon="👤"
+          avatarIcon="person-outline"
           showNotificationBell
           notificationCount={unreadNotifications}
           onNotificationPress={() => {}}
@@ -137,9 +143,9 @@ export const WorkerDashboard = () => {
         {/* ── Verification Banner ────────────────────── */}
         {isUnverified && (
           <VerificationBanner
-            title={`${t('verify_now')} / अभी सत्यापित करें`}
-            subtitle="Unlock high-paying jobs / ज़्यादा पैसे वाले काम पाएं"
-            ctaLabel={`${t('verify_now')}`}
+            title={t('verify_now')}
+            subtitle={t('onboarding:verification_promo')}
+            ctaLabel={t('verify_now')}
             delay={BASE_DELAY}
             onPress={() => navigation.navigate('Verification')}
           />
@@ -169,15 +175,12 @@ export const WorkerDashboard = () => {
               <ThemedText type="label" size="medium" weight="600" color={theme.Colors.grey[400]}>
                 {t('this_month_earnings')}
               </ThemedText>
-              <ThemedText type="label" size="small" weight="500" color={theme.Colors.grey[400]}>
-                इस महीने की कमाई
-              </ThemedText>
               <ThemedText type="headline" size="small" weight="800" color={theme.Colors.secondary} style={styles.earningsValue}>
                 ₹{(workerProfile?.completedJobsCount || 0) * 500}
               </ThemedText>
             </View>
             <View style={[styles.earningsIcon, { backgroundColor: theme.Colors.secondary + '15' }]}>
-              <ThemedText style={{ fontSize: 28 }}>💸</ThemedText>
+              <Ionicons name="cash-outline" size={28} color={theme.Colors.secondary} />
             </View>
           </View>
           <View style={[styles.earningsDivider, { backgroundColor: theme.Colors.grey[100] }]} />
@@ -185,9 +188,6 @@ export const WorkerDashboard = () => {
             <View style={styles.earningsMetaItem}>
               <ThemedText type="label" size="small" weight="600" color={theme.Colors.grey[400]}>
                 {t('jobs_done')}
-              </ThemedText>
-              <ThemedText type="label" size="small" weight="500" color={theme.Colors.grey[400]}>
-                पूरे किए
               </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.primary}>
                 {workerProfile?.completedJobsCount || 0}
@@ -198,9 +198,6 @@ export const WorkerDashboard = () => {
               <ThemedText type="label" size="small" weight="600" color={theme.Colors.grey[400]}>
                 {t('avg_per_job')}
               </ThemedText>
-              <ThemedText type="label" size="small" weight="500" color={theme.Colors.grey[400]}>
-                औसत
-              </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.warning}>
                 ₹500
               </ThemedText>
@@ -210,9 +207,6 @@ export const WorkerDashboard = () => {
               <ThemedText type="label" size="small" weight="600" color={theme.Colors.grey[400]}>
                 {t('pending')}
               </ThemedText>
-              <ThemedText type="label" size="small" weight="500" color={theme.Colors.grey[400]}>
-                बाकी
-              </ThemedText>
               <ThemedText type="title" size="small" weight="800" color={theme.Colors.error}>
                 ₹0
               </ThemedText>
@@ -221,14 +215,14 @@ export const WorkerDashboard = () => {
         </View>
 
         {/* ── Stats Grid ─────────────────────────────── */}
-        <SectionHeader title={t('overview')} subtitle="सारांश" />
+        <SectionHeader title={t('overview')} />
         <View style={styles.statsRow}>
           {stats.map((item, index) => (
             <StatsCard
               key={item.label}
               icon={item.icon}
               value={item.value}
-              label={`${item.label}\n${item.labelHi}`}
+              label={item.label}
               accentColor={item.color}
               delay={BASE_DELAY + STAGGER * (index + 1)}
             />
@@ -236,19 +230,19 @@ export const WorkerDashboard = () => {
         </View>
 
         {/* ── Quick Actions ──────────────────────────── */}
-        <SectionHeader title={t('quick_actions')} subtitle="त्वरित कार्य" />
+        <SectionHeader title={t('quick_actions')} />
         <View style={styles.actionRow}>
           <QuickActionButton
-            icon="🔍"
-            label={`${t('find_jobs')}\nकाम ढूंढें`}
+            icon="search-outline"
+            label={t('find_jobs')}
             backgroundColor={theme.Colors.primary}
             gradientColor={theme.Colors.primaryVariant}
             delay={BASE_DELAY + STAGGER * 5}
             onPress={() => navigation.navigate('FindJobs')}
           />
           <QuickActionButton
-            icon="📅"
-            label={`${t('my_tasks')}\nमेरे काम`}
+            icon="calendar-outline"
+            label={t('my_tasks')}
             backgroundColor={theme.Colors.secondary}
             gradientColor="#0d7377"
             delay={BASE_DELAY + STAGGER * 6}
@@ -259,7 +253,6 @@ export const WorkerDashboard = () => {
         {/* ── Recommended Jobs ───────────────────────── */}
         <SectionHeader
           title={t('recommended_for_you')}
-          subtitle="आपके लिए सुझाव"
           actionLabel={`${t('see_all')} →`}
           onActionPress={() => navigation.navigate('FindJobs')}
         />
@@ -292,7 +285,7 @@ export const WorkerDashboard = () => {
         activeOpacity={0.8}
         onPress={() =>
           receiveOffer({
-            id: 'mock-1',
+            id: 1,
             title: 'Emergency Plumbing',
             description: 'Serious leak in main pipe. Need someone immediately.',
             location: 'Andheri West',
@@ -320,6 +313,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
+  },
+  loadingState: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // Earnings Card
   earningsCard: {

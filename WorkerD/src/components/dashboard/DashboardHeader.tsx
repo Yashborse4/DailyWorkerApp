@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemedText } from '../common/ThemedText';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -47,6 +49,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onNotificationPress,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-24)).current;
 
@@ -67,16 +70,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const getGreeting = (): { primary: string; secondary: string } => {
+  const getGreetingKey = (): string => {
     const hour = new Date().getHours();
-    if (hour < 12) return { primary: 'Good Morning', secondary: 'सुप्रभात' };
-    if (hour < 17) return { primary: 'Good Afternoon', secondary: 'शुभ दोपहर' };
-    return { primary: 'Good Evening', secondary: 'शुभ संध्या' };
+    if (hour < 12) return 'good_morning';
+    if (hour < 17) return 'good_afternoon';
+    return 'good_evening';
   };
 
   const firstName = name.split(' ')[0] || 'User';
   const tintColor = avatarColor || theme.Colors.primary;
-  const greeting = getGreeting();
+  const greetingKey = getGreetingKey();
 
   return (
     <Animated.View
@@ -96,16 +99,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           weight="500"
           style={styles.greetingLabel}
         >
-          {greeting.primary} {emoji || '👋'}
-        </ThemedText>
-        <ThemedText
-          type="label"
-          size="small"
-          color={theme.Colors.grey[400]}
-          weight="500"
-          style={{ marginBottom: 2, opacity: 0.8 }}
-        >
-          {greeting.secondary}
+          {t('common:' + greetingKey)} {emoji || '👋'}
         </ThemedText>
         <ThemedText type="headline" size="small" weight="800" style={styles.nameText}>
           {firstName}
@@ -134,7 +128,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             onPress={onNotificationPress}
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.bellIcon}>🔔</ThemedText>
+            <Ionicons name="notifications-outline" size={20} color={theme.Colors.onBackground} />
             {notificationCount > 0 && (
               <View style={[styles.badge, { backgroundColor: theme.Colors.error }]}>
                 <ThemedText style={styles.badgeText}>
@@ -166,7 +160,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           ]}
         >
           <View style={[styles.avatarInner, { backgroundColor: tintColor + '18' }]}>
-            <ThemedText style={styles.avatarIcon}>{avatarIcon}</ThemedText>
+            {avatarIcon.length > 2 ? (
+              <Ionicons name={avatarIcon} size={24} color={tintColor} />
+            ) : (
+              <ThemedText style={styles.avatarIcon}>{avatarIcon}</ThemedText>
+            )}
           </View>
         </TouchableOpacity>
       </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView, Dimensions, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { useTheme } from '../../hooks/useTheme';
@@ -33,13 +34,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const HirerDashboard = () => {
   const { theme } = useTheme();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
 
   const [loading, setLoading] = React.useState(true);
   const [jobs, setJobs] = React.useState<jobService.Job[]>([]);
   const [applicantCount, setApplicantCount] = React.useState(0);
-  const [shortlistedCount, setShortlistedCount] = useState(0);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [shortlistedCount, setShortlistedCount] = React.useState(0);
+  const [unreadNotifications, setUnreadNotifications] = React.useState(0);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -65,15 +67,15 @@ export const HirerDashboard = () => {
 
   // ── Derived Data ──────────────────────────────────────
   const stats = [
-    { label: 'Live Jobs', value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), icon: '📡', color: theme.Colors.hirer.base },
-    { label: 'Applicants', value: applicantCount.toString(), icon: '👥', color: theme.Colors.secondary },
-    { label: 'Shortlisted', value: shortlistedCount.toString(), icon: '✅', color: '#27ae60' },
+    { label: t('live_jobs'), value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), icon: 'radio-button-on-outline', color: theme.Colors.hirer.base },
+    { label: t('applicants'), value: applicantCount.toString(), icon: 'people-outline', color: theme.Colors.secondary },
+    { label: t('shortlisted'), value: shortlistedCount.toString(), icon: 'checkmark-circle-outline', color: theme.Colors.success },
   ];
 
   const pipelineData = [
-    { label: 'Active', value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), color: theme.Colors.hirer.base },
-    { label: 'Filled', value: jobs.filter(j => j.status === 'COMPLETED').length.toString(), color: theme.Colors.secondary },
-    { label: 'Pending', value: jobs.filter(j => j.status === 'DRAFT').length.toString(), color: theme.Colors.warning },
+    { label: t('active'), value: jobs.filter(j => j.status === 'PUBLISHED').length.toString(), color: theme.Colors.hirer.base },
+    { label: t('filled'), value: jobs.filter(j => j.status === 'COMPLETED').length.toString(), color: theme.Colors.secondary },
+    { label: t('pending'), value: jobs.filter(j => j.status === 'DRAFT').length.toString(), color: theme.Colors.warning },
   ];
 
   const recentPosts = jobs.slice(0, 3).map(j => ({
@@ -82,7 +84,7 @@ export const HirerDashboard = () => {
     date: new Date(j.createdAt).toLocaleDateString(),
     apps: (j as any).applicantCount || 0,
     status: j.status,
-    icon: '🛠️'
+    icon: 'construct-outline'
   }));
 
   // ── Stagger timing ───────────────────────────────────
@@ -111,7 +113,7 @@ export const HirerDashboard = () => {
           name={profile?.name || 'Sir'}
           subtitle="Manage your hires and active posts"
           avatarColor={theme.Colors.hirer.base}
-          avatarIcon="🏢"
+          avatarIcon="business-outline"
           showNotificationBell
           notificationCount={unreadNotifications}
           onNotificationPress={() => {}}
@@ -141,14 +143,14 @@ export const HirerDashboard = () => {
           <View style={[styles.decorCircle, styles.decorCircle2]} />
 
           <ThemedText weight="800" style={styles.pipelineTitle}>
-            Hiring Pipeline
+            {t('hiring_pipeline')}
           </ThemedText>
           <ThemedText weight="500" style={styles.pipelineSubtitle}>
-            Real-time overview of your positions
+            {t('pipeline_desc')}
           </ThemedText>
 
           <View style={styles.pipelineGrid}>
-            {pipelineData.map((item, index) => (
+            {pipelineData.map(item => (
               <View key={item.label} style={styles.pipelineItem}>
                 <ThemedText weight="800" style={styles.pipelineValue}>
                   {item.value}
@@ -164,8 +166,8 @@ export const HirerDashboard = () => {
         {/* ── Post Job CTA ───────────────────────────── */}
         <View style={styles.ctaRow}>
           <QuickActionButton
-            icon="➕"
-            label="Post a New Job"
+            icon="add-circle-outline"
+            label={t('post_new_job')}
             backgroundColor={theme.Colors.hirer.base}
             gradientColor={theme.Colors.hirer.dark}
             delay={BASE_DELAY}
@@ -174,7 +176,7 @@ export const HirerDashboard = () => {
         </View>
 
         {/* ── Stats Grid ─────────────────────────────── */}
-        <SectionHeader title="Overview" actionColor={theme.Colors.hirer.base} />
+        <SectionHeader title={t('overview')} actionColor={theme.Colors.hirer.base} />
         <View style={styles.statsRow}>
           {stats.map((item, index) => (
             <StatsCard
@@ -190,8 +192,8 @@ export const HirerDashboard = () => {
 
         {/* ── Recent Job Posts ────────────────────────── */}
         <SectionHeader
-          title="Recent Job Posts"
-          actionLabel="View All"
+          title={t('common:jobs')}
+          actionLabel={t('view_all')}
           actionColor={theme.Colors.hirer.base}
           onActionPress={() => navigation.navigate('MyJobs')}
         />
@@ -203,10 +205,10 @@ export const HirerDashboard = () => {
             subtitle={`Posted ${post.date}`}
             icon={post.icon}
             status={post.status}
-            statusActive={post.status === 'Active'}
+            statusActive={post.status === 'PUBLISHED'}
             accentColor={theme.Colors.hirer.base}
-            footerLabel={`👥 ${post.apps} Applications`}
-            footerAction="Manage"
+            footerLabel={t('applications_count', { count: post.apps })}
+            footerAction={t('manage')}
             onFooterAction={() => {}}
             delay={BASE_DELAY + STAGGER * (4 + index)}
             onPress={() => {}}
@@ -214,19 +216,19 @@ export const HirerDashboard = () => {
         ))}
 
         {/* ── Quick Actions ──────────────────────────── */}
-        <SectionHeader title="Quick Actions" actionColor={theme.Colors.hirer.base} />
+        <SectionHeader title={t('quick_actions')} actionColor={theme.Colors.hirer.base} />
         <View style={styles.actionRow}>
           <QuickActionButton
-            icon="👥"
-            label="Browse Workers"
+            icon="people-outline"
+            label={t('browse_workers')}
             backgroundColor={theme.Colors.hirer.base}
             gradientColor="#047857"
             delay={BASE_DELAY + STAGGER * 8}
             onPress={() => {}}
           />
           <QuickActionButton
-            icon="💬"
-            label="Messages"
+            icon="chatbubble-ellipses-outline"
+            label={t('messages')}
             backgroundColor={theme.Colors.secondary}
             gradientColor="#0d7377"
             delay={BASE_DELAY + STAGGER * 9}

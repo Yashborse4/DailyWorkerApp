@@ -22,8 +22,8 @@ public class RateLimitConfiguration {
 
     @Bean
     public Limiter concurrencyLimiter() {
-        // initialLimit=20, minLimit=10, maxLimit=200, smoothing=0.2, rttTolerance=4
-        return new GradientLimiter(10, 200, 200, 0.2, 4);
+        // initialLimit=50, minLimit=10, maxLimit=200, queueSize=4
+        return new GradientLimiter(50, 10, 200, 0.2, 4);
     }
 
     @Bean

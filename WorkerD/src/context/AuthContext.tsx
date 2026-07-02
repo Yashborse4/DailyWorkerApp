@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../api/authService';
 import * as workerService from '../api/workerService';
+import { clearTokens, getTokens, updateTokens } from '../api/secureTokenStorage';
 import { STORAGE_KEYS } from '../constants';
 
 interface AuthContextType {
@@ -32,23 +33,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAndRefreshToken = async () => {
       try {
-        const token = await AsyncStorage.getItem('accessToken');
-        const refreshTokenVal = await AsyncStorage.getItem('refreshToken');
-        const lastRefreshStr = await AsyncStorage.getItem('lastRefresh');
+        const tokens = await getTokens();
         const storedRole = await AsyncStorage.getItem('userRole') as any;
         const storedUser = await AsyncStorage.getItem('user');
         
-        if (token && refreshTokenVal) {
+        if (tokens?.accessToken && tokens.refreshToken) {
           const now = Date.now();
-          const lastRefresh = lastRefreshStr ? parseInt(lastRefreshStr, 10) : 0;
+          const lastRefresh = tokens.lastRefresh ? parseInt(tokens.lastRefresh, 10) : 0;
           
           if (now - lastRefresh > FIVE_DAYS_MS) {
             console.log('Token is older than 5 days, refreshing...');
             try {
-              const data = await authService.refreshToken(refreshTokenVal);
-              await AsyncStorage.setItem('accessToken', data.accessToken);
-              await AsyncStorage.setItem('refreshToken', data.refreshToken);
-              await AsyncStorage.setItem('lastRefresh', Date.now().toString());
+              const data = await authService.refreshToken(tokens.refreshToken);
+              await updateTokens(data.accessToken, data.refreshToken);
               await AsyncStorage.setItem('userRole', data.user.role.toLowerCase());
               await AsyncStorage.setItem('user', JSON.stringify(data.user));
               
@@ -77,9 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await authService.login(username, password);
     const role = data.user.role.toLowerCase() as any;
     
-    await AsyncStorage.setItem('accessToken', data.accessToken);
-    await AsyncStorage.setItem('refreshToken', data.refreshToken);
-    await AsyncStorage.setItem('lastRefresh', Date.now().toString());
+    await updateTokens(data.accessToken, data.refreshToken);
     await AsyncStorage.setItem('userRole', role);
     await AsyncStorage.setItem('user', JSON.stringify(data.user));
     
@@ -88,9 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('refreshToken');
-    await AsyncStorage.removeItem('lastRefresh');
+    await clearTokens();
     await AsyncStorage.removeItem('userRole');
     await AsyncStorage.removeItem('user');
     setUser(null);

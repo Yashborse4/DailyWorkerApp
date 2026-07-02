@@ -33,15 +33,23 @@ public class ConcurrencyLimitFilter extends OncePerRequestFilter {
         
         if (listenerOpt.isEmpty()) {
             log.warn("Concurrency limit exceeded for path: {}", path);
-            response.setStatus(429); // Too Many Requests
-            response.getWriter().write("Too Many Requests - Concurrency limit reached");
+            response.setStatus(429);
+            response.setHeader("Retry-After", "1");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\":\"Too many requests. Please retry shortly.\"}");
             return;
         }
 
         Limiter.Listener listener = listenerOpt.get();
         try {
             filterChain.doFilter(request, response);
-            listener.onSuccess();
+            if (response.getStatus() >= 500) {
+                listener.onDropped();
+            } else if (response.getStatus() == 404) {
+                listener.onIgnore();
+            } else {
+                listener.onSuccess();
+            }
         } catch (Exception e) {
             listener.onDropped();
             throw e;

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../config/api.config';
+import { clearTokens, getTokens, updateTokens } from './secureTokenStorage';
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -10,9 +10,9 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const tokens = await getTokens();
+    if (tokens?.accessToken) {
+      config.headers.Authorization = `Bearer ${tokens.accessToken}`;
     }
     return config;
   },
@@ -53,20 +53,20 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-        if (!storedRefreshToken) {
+        const tokens = await getTokens();
+        if (!tokens?.refreshToken) {
           throw new Error('No refresh token available');
         }
 
         const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh-token`, { 
-          refreshToken: storedRefreshToken 
+          refreshToken: tokens.refreshToken 
+        }, {
+          timeout: API_CONFIG.TIMEOUT,
+          headers: API_CONFIG.HEADERS,
         });
         
         const { accessToken, refreshToken: newRefreshToken } = response.data;
-        await AsyncStorage.setItem('accessToken', accessToken);
-        if (newRefreshToken) {
-          await AsyncStorage.setItem('refreshToken', newRefreshToken);
-        }
+        await updateTokens(accessToken, newRefreshToken || tokens.refreshToken);
 
         apiClient.defaults.headers.Authorization = `Bearer ${accessToken}`;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -75,9 +75,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        await AsyncStorage.removeItem('accessToken');
-        await AsyncStorage.removeItem('refreshToken');
-        // You might want to trigger a global logout event here
+        await clearTokens();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

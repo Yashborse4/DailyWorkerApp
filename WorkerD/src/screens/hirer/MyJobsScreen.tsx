@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, Dimensions, Animated } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, FlatList, Animated, Easing } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedCard } from '../../components/common/ThemedCard';
 import { useTheme } from '../../hooks/useTheme';
 import * as jobService from '../../api/jobService';
 import { ActivityIndicator } from 'react-native';
-
-const { width } = Dimensions.get('window');
-
-type JobStatus = 'All' | 'Active' | 'Pending' | 'Closed';
 
 interface JobPost {
   id: string;
@@ -27,18 +25,30 @@ interface JobPost {
 
 // MOCK_JOBS removed
 
-const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number, theme: any }) => {
+const AnimatedJobCard = ({
+  item,
+  index,
+  theme,
+  onApplicants,
+}: {
+  item: JobPost;
+  index: number;
+  theme: any;
+  onApplicants: (job: JobPost) => void;
+}) => {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.delay(index * 100).start(() => {
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true })
+        Animated.timing(fadeAnim, { toValue: 1, duration: 460, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 460, easing: Easing.out(Easing.cubic), useNativeDriver: true })
       ]).start();
     });
-  }, []);
+  }, [fadeAnim, index, slideAnim]);
 
   const getStatusColor = (status: string, isBg = false) => {
     switch(status) {
@@ -51,8 +61,8 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
   };
 
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-      <ThemedCard style={styles.jobCard} elevation={2}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }}>
+      <ThemedCard style={[styles.jobCard, { borderColor: theme.Colors.grey[100] }]} elevation={2}>
         <View style={styles.jobHeader}>
           <View style={{ flex: 1 }}>
             <ThemedText type="title" size="small" weight="700">{item.title}</ThemedText>
@@ -72,15 +82,15 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
         
         <View style={styles.jobDetails}>
           <View style={styles.detailItem}>
-            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>Budget</ThemedText>
+            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>{t('budget', 'Budget')}</ThemedText>
             <ThemedText weight="700">{item.salary}</ThemedText>
           </View>
           <View style={styles.detailItem}>
-            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>Project Timeline</ThemedText>
-            <ThemedText weight="700">{item.startDate} - {item.endDate}</ThemedText>
+            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>{t('timeline', 'Project Timeline')}</ThemedText>
+            <ThemedText weight="700">{item.startDate || 'N/A'} - {item.endDate || 'N/A'}</ThemedText>
           </View>
           <View style={styles.detailItem}>
-            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>Applications</ThemedText>
+            <ThemedText type="label" size="small" color={theme.Colors.grey[500]}>{t('common:applicants')}</ThemedText>
             <ThemedText weight="700">{item.apps}</ThemedText>
           </View>
         </View>
@@ -88,12 +98,12 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
         <View style={styles.cardActions}>
           <TouchableOpacity 
             style={styles.actionBtn}
-            onPress={() => navigation.navigate('ViewApplicants', { jobId: item.id, jobTitle: item.title })}
+            onPress={() => onApplicants(item)}
           >
-            <ThemedText color={theme.Colors.hirer.base} weight="700">Applicants</ThemedText>
+            <ThemedText color={theme.Colors.hirer.base} weight="700">{t('common:applicants')}</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.primaryActionBtn, { backgroundColor: theme.Colors.hirer.base }]}>
-            <ThemedText color="#fff" weight="700">Manage</ThemedText>
+            <ThemedText color="#fff" weight="700">{t('common:manage')}</ThemedText>
           </TouchableOpacity>
         </View>
       </ThemedCard>
@@ -103,6 +113,7 @@ const AnimatedJobCard = ({ item, index, theme }: { item: JobPost, index: number,
 
 export const MyJobsScreen = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [jobs, setJobs] = useState<JobPost[]>([]);
@@ -113,7 +124,7 @@ export const MyJobsScreen = () => {
   useEffect(() => {
     Animated.timing(headerFadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
     fetchJobs();
-  }, []);
+  }, [headerFadeAnim]);
 
   const fetchJobs = async () => {
     try {
@@ -140,6 +151,10 @@ export const MyJobsScreen = () => {
     activeFilter === 'All' ? true : job.status === activeFilter
   );
 
+  const handleApplicants = React.useCallback((job: JobPost) => {
+    navigation.navigate('ViewApplicants', { jobId: job.id, jobTitle: job.title });
+  }, [navigation]);
+
   const renderFilterItem = (status: string) => (
     <TouchableOpacity 
       style={[
@@ -162,7 +177,7 @@ export const MyJobsScreen = () => {
   return (
     <ThemedView style={styles.container}>
       <Animated.View style={[styles.header, { opacity: headerFadeAnim }]}>
-        <ThemedText type="headline" size="medium" style={styles.headerTitle}>My Job Posts</ThemedText>
+        <ThemedText type="headline" size="medium" style={styles.headerTitle}>{t('common:my_tasks')}</ThemedText>
         <ThemedText type="body" color={theme.Colors.grey[500]}>Track and manage your active listings.</ThemedText>
       </Animated.View>
 
@@ -182,15 +197,20 @@ export const MyJobsScreen = () => {
           <ActivityIndicator size="large" color={theme.Colors.hirer.base} />
         </View>
       ) : (
-        <FlatList 
+        <FlatList
           data={filteredJobs}
-          renderItem={({ item, index }) => <AnimatedJobCard item={item} index={index} theme={theme} />}
+          renderItem={({ item, index }) => (
+            <AnimatedJobCard item={item} index={index} theme={theme} onApplicants={handleApplicants} />
+          )}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          initialNumToRender={6}
+          windowSize={8}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <ThemedText style={{ fontSize: 40 }}>📝</ThemedText>
+              <Ionicons name="document-text-outline" size={40} color={theme.Colors.grey[400]} />
               <ThemedText type="title" size="small" style={{ marginTop: 16 }}>No jobs found</ThemedText>
               <ThemedText color={theme.Colors.grey[500]} style={{ marginTop: 8 }}>Try changing the filter or post a new job.</ThemedText>
             </View>
@@ -207,7 +227,7 @@ const styles = StyleSheet.create({
   headerTitle: { marginBottom: 4 },
   filtersContainer: { marginBottom: 16 },
   filtersContent: { paddingHorizontal: 16, gap: 8 },
-  filterChip: { 
+  filterChip: {
     paddingVertical: 8, 
     paddingHorizontal: 16, 
     borderRadius: 20, 
@@ -221,7 +241,11 @@ const styles = StyleSheet.create({
     borderRadius: 24, 
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f5f5f5'
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    elevation: 2,
   },
   jobHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   statusBadge: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },

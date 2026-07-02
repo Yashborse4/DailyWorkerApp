@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedInput } from '../../components/common/ThemedInput';
 import { ThemedButton } from '../../components/common/ThemedButton';
 import { ThemedCard } from '../../components/common/ThemedCard';
-import { BilingualText } from '../../components/common/BilingualText';
 import { useTheme } from '../../hooks/useTheme';
 import { Project } from '../../types';
 import * as workerService from '../../api/workerService';
@@ -55,17 +55,17 @@ export const ProfileScreen = () => {
   const getVerificationConfig = () => {
     switch (profile?.verificationStatus) {
       case 'verified':
-        return { icon: '✅', color: theme.Colors.success, label: t('verified'), labelHi: 'सत्यापित', bg: '#E8F5E9' };
+        return { icon: 'checkmark-circle-outline', color: theme.Colors.success, label: t('verified', 'Verified'), bg: '#E8F5E9' };
       case 'pending':
-        return { icon: '⏳', color: theme.Colors.warning, label: t('pending_status'), labelHi: 'विचाराधीन', bg: '#FFF8E1' };
+        return { icon: 'time-outline', color: theme.Colors.warning, label: t('pending_status', 'Pending'), bg: '#FFF8E1' };
       default:
-        return { icon: '❌', color: theme.Colors.error, label: t('unverified'), labelHi: 'असत्यापित', bg: '#FFEBEE' };
+        return { icon: 'close-circle-outline', color: theme.Colors.error, label: t('unverified', 'Unverified'), bg: '#FFEBEE' };
     }
   };
 
   const handleAddProject = async () => {
     if (!newProject.name || !newProject.location) {
-      return Alert.alert('Error', 'Please enter project name and location');
+      return Alert.alert(t('common:error'), t('please_enter_details', 'Please enter project name and location'));
     }
     const projects = [...(profile?.projects || [])];
     const projectWithId = { ...newProject, id: Date.now().toString() };
@@ -73,13 +73,13 @@ export const ProfileScreen = () => {
     await updateProfile({ projects });
     setNewProject({ name: '', location: '', description: '' });
     setIsProjectModalVisible(false);
-    Alert.alert('Success', 'Project added successfully');
+    Alert.alert(t('common:success'), t('project_added_success', 'Project added successfully'));
   };
 
   const handleLogout = () => {
     Alert.alert(
-      'Log Out / लॉग आउट',
-      'Are you sure? / क्या आप वाकई लॉग आउट करना चाहते हैं?',
+      t('log_out'),
+      t('logout_confirm_msg', 'Are you sure you want to log out?'),
       [
         { text: t('cancel'), style: 'cancel' },
         { text: t('log_out'), style: 'destructive', onPress: signOut },
@@ -94,45 +94,42 @@ export const ProfileScreen = () => {
       {/* Quick Stats */}
       <View style={styles.statsRow}>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.primary + '12' }]}>
-          <ThemedText style={{ fontSize: 22 }}>📝</ThemedText>
+          <Ionicons name="document-text-outline" size={22} color={theme.Colors.primary} />
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.primary}>
             {stats.applied}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
-            {t('applied')} / आवेदन
+            {t('applied')}
           </ThemedText>
         </View>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.success + '12' }]}>
-          <ThemedText style={{ fontSize: 22 }}>⭐</ThemedText>
+          <Ionicons name="star-outline" size={22} color={theme.Colors.success} />
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.success}>
             {stats.rating.toFixed(1)}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
-            {t('ratings')} / रेटिंग
+            {t('ratings')}
           </ThemedText>
         </View>
         <View style={[styles.statBox, { backgroundColor: theme.Colors.warning + '12' }]}>
-          <ThemedText style={{ fontSize: 22 }}>💰</ThemedText>
+          <Ionicons name="cash-outline" size={22} color={theme.Colors.warning} />
           <ThemedText type="title" size="medium" weight="800" color={theme.Colors.warning}>
             ₹{stats.earnings}
           </ThemedText>
           <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>
-            {t('earning')} / कमाई
+            {t('earning')}
           </ThemedText>
         </View>
       </View>
 
       {/* Work Details Section */}
       <View style={styles.section}>
-        <BilingualText
-          primary={t('work_details')}
-          secondary="कार्य विवरण"
-          type="title"
-          size="medium"
-          weight="700"
-          icon="🔧"
-          style={styles.sectionTitle}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+          <Ionicons name="construct-outline" size={24} color={theme.Colors.primary} style={{ marginRight: 8 }} />
+          <ThemedText type="title" size="medium" weight="700">
+            {t('work_details')}
+          </ThemedText>
+        </View>
         <ThemedCard style={styles.infoCard}>
           {/* Trade */}
           <ThemedInput
@@ -157,15 +154,14 @@ export const ProfileScreen = () => {
           {/* Verification Status */}
           <View style={styles.infoRow}>
             <View style={styles.infoLabel}>
-              <ThemedText style={{ fontSize: 18 }}>{verConfig.icon}</ThemedText>
+              <Ionicons name={verConfig.icon} size={22} color={verConfig.color} />
               <View>
                 <ThemedText color={theme.Colors.grey[500]}>{t('verification')}</ThemedText>
-                <ThemedText type="label" size="small" color={theme.Colors.grey[400]}>सत्यापन</ThemedText>
               </View>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: verConfig.bg }]}>
               <ThemedText type="label" size="small" weight="700" color={verConfig.color}>
-                {verConfig.label} / {verConfig.labelHi}
+                {verConfig.label}
               </ThemedText>
             </View>
           </View>
@@ -180,16 +176,13 @@ export const ProfileScreen = () => {
           activeOpacity={0.8}
           accessibilityLabel="Verify your profile"
         >
-          <ThemedText style={{ fontSize: 24, marginRight: 12 }}>🛡️</ThemedText>
+          <Ionicons name="shield-checkmark-outline" size={24} color="#fff" style={{ marginRight: 12 }} />
           <View style={{ flex: 1 }}>
             <ThemedText weight="700" style={{ color: '#fff', fontSize: 16 }}>
               {t('verify_now')}
             </ThemedText>
-            <ThemedText weight="500" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
-              अभी सत्यापित करें — अधिक काम पाएं
-            </ThemedText>
           </View>
-          <ThemedText style={{ fontSize: 20, color: '#fff' }}>→</ThemedText>
+          <Ionicons name="arrow-forward-outline" size={20} color="#fff" />
         </TouchableOpacity>
       )}
     </>
@@ -199,14 +192,12 @@ export const ProfileScreen = () => {
     <>
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <BilingualText
-            primary="Company & Projects"
-            secondary="कंपनी और प्रोजेक्ट"
-            type="title"
-            size="medium"
-            weight="700"
-            icon="🏢"
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="business-outline" size={24} color={theme.Colors.primary} />
+            <ThemedText type="title" size="medium" weight="700">
+              {t('company_projects', 'Company & Projects')}
+            </ThemedText>
+          </View>
           <TouchableOpacity onPress={() => setIsProjectModalVisible(true)}>
             <ThemedText color={theme.Colors.primary} weight="700">+ Add</ThemedText>
           </TouchableOpacity>
@@ -240,7 +231,7 @@ export const ProfileScreen = () => {
           ))
         ) : (
           <View style={styles.emptyState}>
-            <ThemedText style={{ fontSize: 40 }}>🏗️</ThemedText>
+            <Ionicons name="construct-outline" size={40} color={theme.Colors.grey[400]} />
             <ThemedText color={theme.Colors.grey[400]}>No projects added yet.</ThemedText>
           </View>
         )}
@@ -263,22 +254,25 @@ export const ProfileScreen = () => {
         <View style={styles.profileHeader}>
           <View style={[styles.avatarRing, { borderColor: theme.Colors.primary + '40' }]}>
             <View style={[styles.avatar, { backgroundColor: theme.Colors.primary + '15' }]}>
-              <ThemedText style={{ fontSize: 48 }}>{userRole === 'worker' ? '👷' : '🏢'}</ThemedText>
+              <Ionicons 
+                name={userRole === 'worker' ? 'person-circle-outline' : 'business-outline'} 
+                size={48} 
+                color={theme.Colors.primary} 
+              />
             </View>
           </View>
           <ThemedText type="headline" size="medium" weight="800" style={{ marginTop: 12 }}>
             {profile?.name || 'User Name'}
           </ThemedText>
-          <BilingualText
-            primary={userRole === 'worker' ? t('worker_account') : t('hirer_account')}
-            secondary={userRole === 'worker' ? 'कामगार खाता' : 'नियोक्ता खाता'}
+          <ThemedText
             type="label"
             size="medium"
             weight="600"
             color={theme.Colors.grey[400]}
-            align="center"
-            style={{ marginTop: 4 }}
-          />
+            style={{ marginTop: 4, textAlign: 'center' }}
+          >
+            {userRole === 'worker' ? t('worker_account') : t('hirer_account')}
+          </ThemedText>
         </View>
 
         {userRole === 'worker' ? renderWorkerProfile() : renderHirerProfile()}
@@ -289,15 +283,15 @@ export const ProfileScreen = () => {
           onPress={handleLogout}
           activeOpacity={0.7}
         >
-          <ThemedText style={{ fontSize: 20, marginRight: 8 }}>🚪</ThemedText>
-          <BilingualText
-            primary={t('log_out')}
-            secondary="लॉग आउट"
+          <Ionicons name="log-out-outline" size={20} color={theme.Colors.error} style={{ marginRight: 8 }} />
+          <ThemedText
             type="label"
             size="medium"
             weight="700"
             color={theme.Colors.error}
-          />
+          >
+            {t('log_out')}
+          </ThemedText>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />

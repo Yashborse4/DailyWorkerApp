@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '../common/ThemedText';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -124,7 +125,11 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         />
 
         <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
-          <ThemedText style={styles.icon}>{icon}</ThemedText>
+          {icon.length > 2 ? (
+            <Ionicons name={icon} size={24} color={color} />
+          ) : (
+            <ThemedText style={styles.icon}>{icon}</ThemedText>
+          )}
         </View>
         <ThemedText type="title" size="large" weight="800" color={color} style={styles.value}>
           {value}

@@ -19,7 +19,7 @@ export interface ChatMessage {
 }
 
 export const sendMessage = async (roomId: number, content: string): Promise<ChatMessage> => {
-  const response = await apiClient.post<ChatMessage>(`/chat/rooms/${roomId}/messages`, content);
+  const response = await apiClient.post<ChatMessage>(`/chat/rooms/${roomId}/messages`, { content });
   return response.data;
 };
 

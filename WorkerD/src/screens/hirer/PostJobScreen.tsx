@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, Alert, View, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedInput } from '../../components/common/ThemedInput';
@@ -8,7 +9,6 @@ import { ThemedButton } from '../../components/common/ThemedButton';
 import { useTheme } from '../../hooks/useTheme';
 import { useToast } from '../../context/ToastContext';
 import * as jobService from '../../api/jobService';
-import { useAuth } from '../../context/AuthContext';
 
 const WORK_TYPES = ['Full-time', 'Part-time', 'One-off', 'Contract'];
 const PAYMENT_MODES = ['Daily', 'Weekly', 'Fixed Price', 'Hourly'];
@@ -25,6 +25,7 @@ const JOB_CATEGORIES = [
 ];
 
 export const PostJobScreen = () => {
+  const { t } = useTranslation(['common', 'jobs', 'onboarding']);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
@@ -40,7 +41,6 @@ export const PostJobScreen = () => {
 
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const { profile } = useAuth();
   const navigation = useNavigation<any>();
 
   // Animations
@@ -56,7 +56,7 @@ export const PostJobScreen = () => {
         Animated.timing(formSlideAnim, { toValue: 0, duration: 600, useNativeDriver: true })
       ])
     ]).start();
-  }, []);
+  }, [formFadeAnim, formSlideAnim, headerFadeAnim]);
 
   const handlePostJob = async () => {
     if (!title || !description || !location || !salary || !category) {
@@ -65,8 +65,6 @@ export const PostJobScreen = () => {
 
     setIsLoading(true);
     try {
-      // Parse salary to numeric budget if it's a single value, or take the average/min if it's a range
-      // For now, we'll try to extract the first number found or use it directly
       const budgetMatch = salary.match(/\d+/);
       const budget = budgetMatch ? parseInt(budgetMatch[0], 10) : 0;
 
@@ -76,8 +74,6 @@ export const PostJobScreen = () => {
         location,
         budget,
         category,
-        // Optional fields from FE that aren't yet in BE Job entity but can be added to description
-        // or handled by a more complex Job entity later
       };
 
       await jobService.createJob(jobData);
@@ -122,7 +118,7 @@ export const PostJobScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Animated.View style={[styles.headerSection, { opacity: headerFadeAnim }]}>
           <ThemedText type="headline" size="medium" style={styles.header}>
-            Post a New Job
+            {t('jobs:post_job', 'Post a Job')}
           </ThemedText>
           <ThemedText type="body" style={styles.subHeader}>
             Help us find the right worker for you.
@@ -131,29 +127,29 @@ export const PostJobScreen = () => {
 
         <Animated.View style={{ opacity: formFadeAnim, transform: [{ translateY: formSlideAnim }] }}>
           <ThemedInput 
-            label="Job Title" 
+            label={t('jobs:job_title', 'Job Title')} 
             placeholder="e.g. Electrician needed for home repair"
             value={title}
             onChangeText={setTitle}
           />
           
           <View style={styles.formGroup}>
-            <ThemedText type="label" size="small" weight="700" style={styles.label}>Hiring Entity</ThemedText>
+            <ThemedText type="label" size="small" weight="700" style={styles.label}>{t('jobs:hiring_entity', 'Hiring Entity')}</ThemedText>
             {renderChips(ENTITY_TYPES, hiringEntity, (val) => setHiringEntity(val as any))}
           </View>
 
           <View style={styles.formGroup}>
-            <ThemedText type="label" size="small" weight="700" style={styles.label}>Work Type</ThemedText>
+            <ThemedText type="label" size="small" weight="700" style={styles.label}>{t('jobs:work_type', 'Work Type')}</ThemedText>
             {renderChips(WORK_TYPES, workType, setWorkType)}
           </View>
 
           <View style={styles.formGroup}>
-            <ThemedText type="label" size="small" weight="700" style={styles.label}>Category</ThemedText>
+            <ThemedText type="label" size="small" weight="700" style={styles.label}>{t('jobs:category', 'Category')}</ThemedText>
             {renderChips(JOB_CATEGORIES, category, setCategory)}
-          </ThemedText>
+          </View>
 
           <ThemedInput 
-            label="Description" 
+            label={t('jobs:description', 'Description')} 
             placeholder="Describe the work in detail (e.g. tools required, specific tasks)..."
             multiline
             numberOfLines={4}
@@ -165,7 +161,7 @@ export const PostJobScreen = () => {
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 8 }}>
               <ThemedInput 
-                label="Location" 
+                label={t('common:location', 'Location')} 
                 placeholder="e.g. Andheri, Mumbai"
                 value={location}
                 onChangeText={setLocation}
@@ -173,7 +169,7 @@ export const PostJobScreen = () => {
             </View>
             <View style={{ flex: 1, marginLeft: 8 }}>
               <ThemedInput 
-                label="Est. Duration" 
+                label={t('jobs:duration', 'Est. Duration')} 
                 placeholder="e.g. 2 days"
                 value={duration}
                 onChangeText={setDuration}
@@ -184,7 +180,7 @@ export const PostJobScreen = () => {
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 8 }}>
               <ThemedInput 
-                label="Start Date" 
+                label={t('jobs:start_date', 'Start Date')} 
                 placeholder="e.g. 28/03/2026"
                 value={startDate}
                 onChangeText={setStartDate}
@@ -192,7 +188,7 @@ export const PostJobScreen = () => {
             </View>
             <View style={{ flex: 1, marginLeft: 8 }}>
               <ThemedInput 
-                label="End Date" 
+                label={t('jobs:end_date', 'End Date')} 
                 placeholder="e.g. 30/03/2026"
                 value={endDate}
                 onChangeText={setEndDate}
@@ -201,12 +197,12 @@ export const PostJobScreen = () => {
           </View>
 
           <View style={styles.formGroup}>
-            <ThemedText type="label" size="small" weight="700" style={styles.label}>Payment Frequency</ThemedText>
+            <ThemedText type="label" size="small" weight="700" style={styles.label}>{t('jobs:payment_frequency', 'Payment Frequency')}</ThemedText>
             {renderChips(PAYMENT_MODES, paymentMode, setPaymentMode)}
           </View>
 
           <ThemedInput 
-            label="Salary / Budget" 
+            label={t('jobs:salary_budget', 'Salary / Budget')} 
             placeholder="e.g. ₹500 - ₹1000"
             value={salary}
             onChangeText={setSalary}
@@ -215,7 +211,7 @@ export const PostJobScreen = () => {
 
           <View style={styles.buttonContainer}>
             <ThemedButton 
-              title="Post Job Now" 
+              title={t('jobs:post_job_now', 'Post Job Now')} 
               loading={isLoading}
               onPress={handlePostJob}
               style={{ height: 56, borderRadius: 16 }}

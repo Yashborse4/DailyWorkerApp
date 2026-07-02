@@ -28,6 +28,7 @@ public class AuthenticationService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
+                .displayName(request.getDisplayName())
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .build();
         userService.save(user);
@@ -39,6 +40,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .user(mapToUserDto(user))
                 .build();
     }
 
@@ -58,6 +60,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .user(mapToUserDto(user))
                 .build();
     }
 
@@ -78,8 +81,21 @@ public class AuthenticationService {
             return AuthenticationResponse.builder()
                     .accessToken(newAccessToken)
                     .refreshToken(newRefreshToken)
+                    .user(mapToUserDto(user))
                     .build();
         }
         throw new BusinessException(ErrorCode.BAD_CREDENTIALS, "Refresh Token mismatch");
+    }
+
+    private com.workerdemo.dto.UserDto mapToUserDto(User user) {
+        return com.workerdemo.dto.UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .displayName(user.getDisplayName())
+                .role(user.getRole())
+                .isEmailVerified(user.isEmailVerified())
+                .isDealerVerified(user.isDealerVerified())
+                .build();
     }
 }

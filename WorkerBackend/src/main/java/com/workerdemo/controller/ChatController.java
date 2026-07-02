@@ -2,6 +2,7 @@ package com.workerdemo.controller;
 
 import com.workerdemo.dto.chat.ChatMessageDto;
 import com.workerdemo.dto.chat.ChatRoomResponse;
+import com.workerdemo.dto.chat.SendMessageRequest;
 import com.workerdemo.dto.chat.UnreadCountResponse;
 import com.workerdemo.entity.ChatRoom;
 import com.workerdemo.entity.User;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -54,10 +56,10 @@ public class ChatController {
     @RateLimit(capacity = 15, tokensPerPeriod = 15, periodInSeconds = 60, key = "chat_message_send")
     public ResponseEntity<ChatMessageDto> sendMessage(
             @PathVariable Long roomId,
-            @RequestBody String content,
+            @Valid @RequestBody SendMessageRequest request,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(chatService.saveMessage(roomId, user.getId(), content));
+        return ResponseEntity.ok(chatService.saveMessage(roomId, user.getId(), request.getContent()));
     }
 
     @GetMapping("/unread-count")

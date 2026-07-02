@@ -9,6 +9,8 @@ import ProfileScreen from '../screens/common/ProfileScreen';
 import VerificationScreen from '../screens/worker/VerificationScreen';
 import { ThemedText } from '../components/common/ThemedText';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator<WorkerTabParamList>();
 const Stack = createNativeStackNavigator();
@@ -22,6 +24,7 @@ const DashboardStack = () => (
 
 export const WorkerNavigator = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -47,10 +50,10 @@ export const WorkerNavigator = () => {
         name="WorkerDashboard"
         component={DashboardStack}
         options={{
-          title: 'Home / घर',
+          title: t('home'),
           tabBarIcon: ({ color, focused }) => (
             <View style={{ alignItems: 'center' }}>
-              <ThemedText style={{ color, fontSize: 22 }}>🏠</ThemedText>
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
               {focused && (
                 <View style={{
                   width: 20,
@@ -68,10 +71,10 @@ export const WorkerNavigator = () => {
         name="FindJobs"
         component={FindJobsScreen}
         options={{
-          title: 'Jobs / काम',
+          title: t('jobs'),
           tabBarIcon: ({ color, focused }) => (
             <View style={{ alignItems: 'center' }}>
-              <ThemedText style={{ color, fontSize: 22 }}>🔍</ThemedText>
+              <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={color} />
               {focused && (
                 <View style={{
                   width: 20,
@@ -89,10 +92,10 @@ export const WorkerNavigator = () => {
         name="ChatList"
         component={require('../screens/chat/ChatListScreen').default}
         options={{
-          title: 'Chat / चैट',
+          title: t('chat'),
           tabBarIcon: ({ color, focused }) => (
             <View style={{ alignItems: 'center' }}>
-              <ThemedText style={{ color, fontSize: 22 }}>💬</ThemedText>
+              <Ionicons name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} size={22} color={color} />
               {focused && (
                 <View style={{
                   width: 20,
@@ -110,10 +113,10 @@ export const WorkerNavigator = () => {
         name="WorkerProfile"
         component={ProfileScreen}
         options={{
-          title: 'Profile / प्रोफ़ाइल',
+          title: t('profile'),
           tabBarIcon: ({ color, focused }) => (
             <View style={{ alignItems: 'center' }}>
-              <ThemedText style={{ color, fontSize: 22 }}>👤</ThemedText>
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
               {focused && (
                 <View style={{
                   width: 20,
