@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../hooks/useTheme';
 import { ThemedInput } from '../common/ThemedInput';
 import { ThemedText } from '../common/ThemedText';
@@ -43,12 +44,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onMicPress 
           accessibilityLabel="Record voice message"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <ThemedText style={{ fontSize: 20 }}>🎤</ThemedText>
+          <Ionicons name="mic-outline" size={20} color={theme.Colors.secondary} />
         </TouchableOpacity>
 
         <ThemedInput
           variant="filled"
-          placeholder={`${t('type_message')} / संदेश लिखें...`}
+          placeholder={t('common:type_message')}
           value={text}
           onChangeText={setText}
           containerStyle={styles.input}
@@ -68,9 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onMicPress 
           ]}
           accessibilityLabel="Send message"
         >
-          <ThemedText style={{ fontSize: 18, color: '#fff' }}>
-            {hasText ? '➤' : '➤'}
-          </ThemedText>
+          <Ionicons name="send" size={18} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
