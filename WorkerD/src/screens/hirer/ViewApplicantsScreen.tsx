@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,7 +23,7 @@ export const ViewApplicantsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
 
-  const fetchApplicants = async () => {
+  const fetchApplicants = useCallback(async () => {
     try {
       const data = await getApplicationsForJob(jobId);
       setApplicants(data);
@@ -32,11 +32,11 @@ export const ViewApplicantsScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId]);
 
   useEffect(() => {
     fetchApplicants();
-  }, [jobId]);
+  }, [fetchApplicants]);
 
   const handleChatWithWorker = async (workerId: number, workerName: string) => {
     setProcessingId(1); // Generic busy state
@@ -47,6 +47,7 @@ export const ViewApplicantsScreen = () => {
         otherUserName: workerName 
       });
     } catch (error) {
+      console.error('Chat error:', error);
       showToast({ message: 'Failed to initiate chat.', type: 'error' });
     } finally {
       setProcessingId(null);
@@ -60,6 +61,7 @@ export const ViewApplicantsScreen = () => {
       showToast({ message: `Application ${status.toLowerCase()} successfully!`, type: 'success' });
       fetchApplicants(); // Refresh list
     } catch (error) {
+      console.error('Status update error:', error);
       showToast({ message: 'Failed to update status.', type: 'error' });
     } finally {
       setProcessingId(null);
