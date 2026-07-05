@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedCard } from '../../components/common/ThemedCard';
@@ -14,6 +16,7 @@ export const ViewApplicantsScreen = () => {
   const { jobId, jobTitle } = route.params;
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   
   const [applicants, setApplicants] = useState<JobApplication[]>([]);
@@ -71,7 +74,7 @@ export const ViewApplicantsScreen = () => {
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <ThemedText weight="700" size="medium">{item.workerName}</ThemedText>
-          <ThemedText size="small" color={theme.Colors.grey[500]}>Bid: ₹{item.bidAmount}</ThemedText>
+          <ThemedText size="small" color={theme.Colors.grey[500]}>{t('common:bid')}: ₹{item.bidAmount}</ThemedText>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: item.status === 'PENDING' ? theme.Colors.warning + '20' : theme.Colors.success + '20' }]}>
           <ThemedText weight="700" size="small" color={item.status === 'PENDING' ? theme.Colors.warning : theme.Colors.success}>{item.status}</ThemedText>
@@ -83,7 +86,7 @@ export const ViewApplicantsScreen = () => {
         <ThemedText style={{ display: 'none' }}>{/* Hidden placeholder to keep logic flow if needed */}</ThemedText>
       )}
 
-      <ThemedText style={styles.coverLetter} size="small">{item.coverLetter || 'No cover letter provided.'}</ThemedText>
+      <ThemedText style={styles.coverLetter} size="small">{item.coverLetter || t('common:no_cover_letter')}</ThemedText>
 
       {item.status === 'PENDING' && (
         <View style={styles.actions}>
@@ -92,7 +95,7 @@ export const ViewApplicantsScreen = () => {
             onPress={() => handleStatusUpdate(item.id, 'REJECTED')}
             disabled={processingId === item.id}
           >
-            <ThemedText color={theme.Colors.error} weight="700">Reject</ThemedText>
+            <ThemedText color={theme.Colors.error} weight="700">{t('common:reject')}</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionBtn, styles.primaryBtn, { backgroundColor: theme.Colors.hirer.base }]}
@@ -102,7 +105,7 @@ export const ViewApplicantsScreen = () => {
             {processingId === item.id ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <ThemedText color="#fff" weight="700">Accept</ThemedText>
+              <ThemedText color="#fff" weight="700">{t('common:accept')}</ThemedText>
             )}
           </TouchableOpacity>
         </View>
@@ -118,7 +121,7 @@ export const ViewApplicantsScreen = () => {
             {processingId === item.id ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <ThemedText color="#fff" weight="700">Mark Completed</ThemedText>
+              <ThemedText color="#fff" weight="700">{t('common:mark_completed')}</ThemedText>
             )}
           </TouchableOpacity>
           <TouchableOpacity 
@@ -126,14 +129,14 @@ export const ViewApplicantsScreen = () => {
             onPress={() => handleChatWithWorker(item.workerId, item.workerName)}
             disabled={processingId !== null}
           >
-             <ThemedText color={theme.Colors.hirer.base} weight="700">Chat</ThemedText>
+             <ThemedText color={theme.Colors.hirer.base} weight="700">{t('common:chat')}</ThemedText>
           </TouchableOpacity>
         </View>
       )}
 
       {item.status === 'COMPLETED' && (
         <View style={[styles.statusBadge, { backgroundColor: theme.Colors.success + '20', marginTop: 8 }]}>
-          <ThemedText weight="700" size="small" color={theme.Colors.success}>JOB COMPLETED 🎉</ThemedText>
+          <ThemedText weight="700" size="small" color={theme.Colors.success}>{t('common:job_completed_badge')}</ThemedText>
         </View>
       )}
     </ThemedCard>
@@ -142,10 +145,10 @@ export const ViewApplicantsScreen = () => {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="headline" size="medium">Applicants</ThemedText>
+        <ThemedText type="headline" size="medium">{t('common:applicants')}</ThemedText>
         <ThemedText type="body" color={theme.Colors.grey[500]}>{jobTitle}</ThemedText>
       </View>
-
+ 
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.Colors.hirer.base} />
@@ -158,9 +161,11 @@ export const ViewApplicantsScreen = () => {
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <ThemedText style={{ fontSize: 40 }}>👥</ThemedText>
-              <ThemedText weight="700" style={{ marginTop: 16 }}>No applicants yet</ThemedText>
-              <ThemedText color={theme.Colors.grey[500]}>Applications will appear here once workers apply.</ThemedText>
+              <Ionicons name="people-outline" size={40} color={theme.Colors.grey[400]} />
+              <ThemedText weight="700" style={{ marginTop: 16 }}>{t('common:no_applicants_yet')}</ThemedText>
+              <ThemedText color={theme.Colors.grey[500]} style={{ textAlign: 'center', marginTop: 4 }}>
+                {t('common:no_applicants_desc')}
+              </ThemedText>
             </View>
           }
         />

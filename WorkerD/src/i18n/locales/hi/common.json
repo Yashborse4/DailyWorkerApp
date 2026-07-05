@@ -79,5 +79,22 @@
   "active": "सक्रिय",
   "filled": "भरे हुए",
   "applications_count": "{{count}} आवेदन",
-  "manage": "प्रबंधन"
+  "manage": "प्रबंधन",
+  "no_applicants_yet": "अभी कोई आवेदक नहीं",
+  "no_applicants_desc": "कामगारों द्वारा आवेदन करने के बाद आवेदन यहाँ दिखाई देंगे।",
+  "reject": "अस्वीकार करें",
+  "accept": "स्वीकार करें",
+  "mark_completed": "पूरा चिह्नित करें",
+  "chat": "चैट",
+  "job_completed_badge": "काम पूरा हुआ",
+  "bid": "बोली",
+  "no_cover_letter": "कोई विवरण नहीं दिया गया।",
+  "my_applications": "मेरे आवेदन",
+  "my_applications_desc": "अपनी बोलियों और प्रस्तावों को ट्रैक करें।",
+  "no_applications_yet": "अभी कोई आवेदन नहीं",
+  "no_applications_desc": "आवेदन देखने के लिए काम की तलाश शुरू करें और बोली लगाएं।",
+  "your_bid": "आपकी बोली",
+  "status": "स्थिति",
+  "waiting": "प्रतीक्षा में",
+  "message_hirer": "नियोक्ता को संदेश भेजें"
 }

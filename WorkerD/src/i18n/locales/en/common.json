@@ -79,5 +79,22 @@
   "active": "Active",
   "filled": "Filled",
   "applications_count": "{{count}} Applications",
-  "manage": "Manage"
+  "manage": "Manage",
+  "no_applicants_yet": "No applicants yet",
+  "no_applicants_desc": "Applications will appear here once workers apply.",
+  "reject": "Reject",
+  "accept": "Accept",
+  "mark_completed": "Mark Completed",
+  "chat": "Chat",
+  "job_completed_badge": "JOB COMPLETED",
+  "bid": "Bid",
+  "no_cover_letter": "No cover letter provided.",
+  "my_applications": "My Applications",
+  "my_applications_desc": "Track your job bids and offers.",
+  "no_applications_yet": "No applications yet",
+  "no_applications_desc": "Start applying for jobs to see them here.",
+  "your_bid": "Your Bid",
+  "status": "Status",
+  "waiting": "Waiting",
+  "message_hirer": "Message Hirer"
 }

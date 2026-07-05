@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from '../../components/common/ThemedView';
 import { ThemedText } from '../../components/common/ThemedText';
 import { ThemedCard } from '../../components/common/ThemedCard';
@@ -9,6 +11,7 @@ import { getMyApplications, JobApplication } from '../../api/jobApplicationServi
 
 export const MyApplicationsScreen = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,12 +62,12 @@ export const MyApplicationsScreen = () => {
       
       <View style={styles.details}>
         <View style={styles.detailItem}>
-          <ThemedText size="small" color={theme.Colors.grey[500]}>Your Bid</ThemedText>
+          <ThemedText size="small" color={theme.Colors.grey[500]}>{t('common:your_bid')}</ThemedText>
           <ThemedText weight="700">₹{item.bidAmount}</ThemedText>
         </View>
         <View style={styles.detailItem}>
-          <ThemedText size="small" color={theme.Colors.grey[500]}>Status</ThemedText>
-          <ThemedText weight="700" color={getStatusColor(item.status)}>{item.status === 'PENDING' ? 'Waiting' : item.status}</ThemedText>
+          <ThemedText size="small" color={theme.Colors.grey[500]}>{t('common:status')}</ThemedText>
+          <ThemedText weight="700" color={getStatusColor(item.status)}>{item.status === 'PENDING' ? t('common:waiting') : item.status}</ThemedText>
         </View>
       </View>
 
@@ -73,7 +76,7 @@ export const MyApplicationsScreen = () => {
           style={[styles.actionBtn, { backgroundColor: theme.Colors.primary }]}
           onPress={() => navigation.navigate('ChatList')}
         >
-          <ThemedText color="#fff" weight="700">Message Hirer</ThemedText>
+          <ThemedText color="#fff" weight="700">{t('common:message_hirer')}</ThemedText>
         </TouchableOpacity>
       )}
     </ThemedCard>
@@ -82,8 +85,8 @@ export const MyApplicationsScreen = () => {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="headline" size="medium">My Applications</ThemedText>
-        <ThemedText type="body" color={theme.Colors.grey[500]}>Track your job bids and offers.</ThemedText>
+        <ThemedText type="headline" size="medium">{t('common:my_applications')}</ThemedText>
+        <ThemedText type="body" color={theme.Colors.grey[500]}>{t('common:my_applications_desc')}</ThemedText>
       </View>
 
       {loading ? (
@@ -99,9 +102,11 @@ export const MyApplicationsScreen = () => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <ThemedText style={{ fontSize: 40 }}>📄</ThemedText>
-              <ThemedText weight="700" style={{ marginTop: 16 }}>No applications yet</ThemedText>
-              <ThemedText color={theme.Colors.grey[500]}>Start applying for jobs to see them here.</ThemedText>
+              <Ionicons name="document-text-outline" size={40} color={theme.Colors.grey[400]} />
+              <ThemedText weight="700" style={{ marginTop: 16 }}>{t('common:no_applications_yet')}</ThemedText>
+              <ThemedText color={theme.Colors.grey[500]} style={{ marginTop: 8, textAlign: 'center' }}>
+                {t('common:no_applications_desc')}
+              </ThemedText>
             </View>
           }
         />
