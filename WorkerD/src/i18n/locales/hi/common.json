@@ -96,5 +96,9 @@
   "your_bid": "आपकी बोली",
   "status": "स्थिति",
   "waiting": "प्रतीक्षा में",
-  "message_hirer": "नियोक्ता को संदेश भेजें"
+  "message_hirer": "नियोक्ता को संदेश भेजें",
+  "theme_settings": "थीम सेटिंग्स",
+  "light_mode": "लाइट",
+  "dark_mode": "डार्क",
+  "system_default": "सिस्टम"
 }

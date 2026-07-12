@@ -16,7 +16,7 @@ import { ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
 export const ProfileScreen = () => {
-  const { theme } = useTheme();
+  const { theme, themeMode, setThemeMode } = useTheme();
   const { t } = useTranslation();
   const { profile, userRole, updateProfile, signOut } = useAuth();
   const navigation = useNavigation<any>();
@@ -277,6 +277,66 @@ export const ProfileScreen = () => {
 
         {userRole === 'worker' ? renderWorkerProfile() : renderHirerProfile()}
 
+        {/* Theme Settings Card */}
+        <View style={styles.section}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+            <Ionicons name="color-palette-outline" size={24} color={theme.Colors.primary} style={{ marginRight: 8 }} />
+            <ThemedText type="title" size="medium" weight="700">
+              {t('common:theme_settings')}
+            </ThemedText>
+          </View>
+          <ThemedCard style={styles.infoCard}>
+            <View style={styles.themeSelectorContainer}>
+              {(['light', 'dark', 'system'] as const).map((mode) => {
+                const isActive = themeMode === mode;
+                const getIcon = () => {
+                  switch (mode) {
+                    case 'light': return 'sunny-outline';
+                    case 'dark': return 'moon-outline';
+                    case 'system': return 'settings-outline';
+                  }
+                };
+                const getLabel = () => {
+                  switch (mode) {
+                    case 'light': return t('common:light_mode');
+                    case 'dark': return t('common:dark_mode');
+                    case 'system': return t('common:system_default');
+                  }
+                };
+                return (
+                  <TouchableOpacity
+                    key={mode}
+                    onPress={() => setThemeMode(mode)}
+                    style={[
+                      styles.themeOption,
+                      isActive
+                        ? { backgroundColor: theme.Colors.primary }
+                        : { backgroundColor: theme.md3.colors.surfaceVariant },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={getIcon()}
+                      size={18}
+                      color={isActive ? theme.Colors.white : theme.md3.colors.onSurfaceVariant}
+                      style={{ marginBottom: 4 }}
+                    />
+                    <ThemedText
+                      size="small"
+                      weight={isActive ? "700" : "500"}
+                      style={{
+                        color: isActive ? theme.Colors.white : theme.md3.colors.onSurfaceVariant,
+                      }}
+                    >
+                      {getLabel()}
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ThemedCard>
+        </View>
+
         {/* Log Out — with icon and confirmation */}
         <TouchableOpacity
           style={[styles.logoutBtn, { borderColor: theme.Colors.error + '30' }]}
@@ -426,6 +486,18 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { padding: 24, borderTopLeftRadius: 32, borderTopRightRadius: 32 },
   modalButtons: { flexDirection: 'row', marginTop: 20 },
+  themeSelectorContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  themeOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
 });
 
 export default ProfileScreen;

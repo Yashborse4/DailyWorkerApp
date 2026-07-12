@@ -96,5 +96,9 @@
   "your_bid": "Your Bid",
   "status": "Status",
   "waiting": "Waiting",
-  "message_hirer": "Message Hirer"
+  "message_hirer": "Message Hirer",
+  "theme_settings": "Theme Settings",
+  "light_mode": "Light",
+  "dark_mode": "Dark",
+  "system_default": "System"
 }
