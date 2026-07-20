@@ -22,7 +22,6 @@ public class JwtTokenProvider {
     public static final String TYPE_ACCESS = "ACCESS";
     public static final String TYPE_REFRESH = "REFRESH";
 
-
     @Value("${application.security.jwt.secret-key}")
     private String jwtSecret;
 
@@ -39,11 +38,9 @@ public class JwtTokenProvider {
         return generateToken(authentication.getName(), null, jwtExpirationInMs, TYPE_ACCESS);
     }
 
-
     public String generateAccessToken(UserPrincipal userPrincipal) {
         return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), jwtExpirationInMs, TYPE_ACCESS);
     }
-
 
     public String generateAccessToken(org.springframework.security.core.userdetails.UserDetails userDetails) {
         Long userId = null;
@@ -55,7 +52,6 @@ public class JwtTokenProvider {
         return generateToken(userDetails.getUsername(), userId, jwtExpirationInMs, TYPE_ACCESS);
     }
 
-
     public String generateRefreshToken(Authentication authentication) {
         if (authentication.getPrincipal() instanceof UserPrincipal userPrincipal) {
             return generateRefreshToken(userPrincipal);
@@ -63,11 +59,9 @@ public class JwtTokenProvider {
         return generateToken(authentication.getName(), null, refreshExpirationInMs, TYPE_REFRESH);
     }
 
-
     public String generateRefreshToken(UserPrincipal userPrincipal) {
         return generateToken(userPrincipal.getUsername(), userPrincipal.getId(), refreshExpirationInMs, TYPE_REFRESH);
     }
-
 
     public String generateRefreshToken(org.springframework.security.core.userdetails.UserDetails userDetails) {
         Long userId = null;
@@ -83,17 +77,15 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
-
         var builder = Jwts.builder()
                 .subject(username)
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(now)
                 .expiration(expiryDate);
-        
+
         if (userId != null) {
             builder.claim("userId", userId);
         }
-
 
         return builder.signWith(getSigningKey())
                 .compact();

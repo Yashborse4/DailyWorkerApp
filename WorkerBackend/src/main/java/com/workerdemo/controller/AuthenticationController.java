@@ -1,17 +1,24 @@
 package com.workerdemo.controller;
 
 import com.workerdemo.aspect.AuditLog;
-import com.workerdemo.dto.*;
+import com.workerdemo.dto.AuthenticationRequest;
+import com.workerdemo.dto.AuthenticationResponse;
+import com.workerdemo.dto.RefreshTokenRequest;
+import com.workerdemo.dto.RegisterRequest;
 import com.workerdemo.ratelimit.RateLimit;
 import com.workerdemo.service.AuthenticationService;
 import com.workerdemo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
