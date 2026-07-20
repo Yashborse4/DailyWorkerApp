@@ -8,6 +8,7 @@ import com.workerdemo.entity.User;
 import com.workerdemo.exception.BusinessException;
 import com.workerdemo.exception.ErrorCode;
 import com.workerdemo.security.jwt.JwtTokenProvider;
+import com.workerdemo.security.jwt.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthenticationResponse register(RegisterRequest request) {
         User user = User.builder()
@@ -65,6 +67,10 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse refreshToken(String refreshToken) {
+        if (tokenBlacklistService.isBlacklisted(refreshToken)) {
+            throw new BusinessException(ErrorCode.BAD_CREDENTIALS, "Refresh token has been revoked");
+        }
+
         if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
             throw new BusinessException(ErrorCode.BAD_CREDENTIALS, "Invalid Refresh Token");
         }
@@ -77,6 +83,10 @@ public class AuthenticationService {
             var newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
             user.setRefreshToken(newRefreshToken);
             userService.save(user);
+
+            // Blacklist the old refresh token to enforce single-use token rotation
+            long remainingMs = jwtTokenProvider.getRemainingExpiration(refreshToken);
+            tokenBlacklistService.blacklistToken(refreshToken, remainingMs);
             
             return AuthenticationResponse.builder()
                     .accessToken(newAccessToken)

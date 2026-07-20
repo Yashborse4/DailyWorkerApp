@@ -46,7 +46,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && tokenProvider.validateAccessToken(jwt)) {
                 if (blacklistService.isBlacklisted(jwt)) {
                     log.warn("Attempted access with blacklisted token");
-                    filterChain.doFilter(request, response);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"JWT token has been revoked or logged out\"}");
                     return;
                 }
 
